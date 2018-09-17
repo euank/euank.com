@@ -11,7 +11,7 @@ individuals have ignored the lack of support and made it work anyways! The main
 projects I know that allow running rust on Lambda are
 [`crowbar`](https://github.com/ilianaw/rust-crowbar) and [Rust on AWS
 Lambda](https://github.com/srijs/rust-aws-lambda). There are other projects,
-such as [lando](https://github.com/softprops/lando),
+such as [lando](https://github.com/softprops/lando) and
 [serverless-rust](https://github.com/softprops/serverless-rust), which
 ultimately use `crowbar` under the hood.
 
