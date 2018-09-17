@@ -12,14 +12,25 @@ body {
   color: #222;
 }
 
-h1 {
-  text-align: center;
-}
+.index-content {
+  h1 {
+    text-align: center;
+  }
 
-.content {
   align-self: center;
   display: flex;
   flex-direction: column;
+}
+
+.post-content {
+  margin: 50px;
+  align-self: left;
+  flex-direction: column;
+
+  img {
+    margin: 5px;
+    max-width: 100%;
+  }
 }
 
 
