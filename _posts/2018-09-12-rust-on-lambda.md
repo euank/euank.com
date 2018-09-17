@@ -185,7 +185,8 @@ performance, let's look at the ease of use of each.
 
 ## crowbar
 
-It took me longer to get a working crowbar lambda than all the others combined.
+It took me longer to get a working crowbar Lambda Function than all the others
+combined.
 Building a dynamically linked shared library in Rust is fairly easy.
 Building one for a cloud environment that might have a broken python
 configuration is a bit harder.
@@ -208,8 +209,8 @@ That's not to say Rust on AWS Lambda is a blameless holy project either. I
 wanted to just type `cargo build --release`, zip it up, and be done, but the reality is less ideal.
 
 Sure, I didn't have to deal with a strangely packaged python library, but
-Lambda's copy of `glibc` is old enough no modern Linux Distro will build a
-binary compatible with it by default.
+Lambda's copy of `glibc` is old enough no modern Linux distribution will build
+a working binary by default.
 
 Fortunately, the `lambci` project has a wonderful [`go-build`](https://github.com/lambci/docker-lambda/blob/v0.15.3/go1.x/build/Dockerfile) image which makes building a Rust on AWS Lambda function [fairly straightforward](https://github.com/euank/lambda-bench/blob/d5b3dda19848b9ed237dfad62c9a88f790b4e2ee/rust-aws-lambda/Makefile).
 
