@@ -1,2 +1,11 @@
 sass:
   sass_dir: _sass
+
+exclude:
+- vendor
+- Makefile
+- Dockerfile
+- .gitignore
+- .dockerignore
+- Gemfile
+- Gemfile.lock
