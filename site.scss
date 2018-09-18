@@ -10,6 +10,7 @@ body {
   margin-top: 2%;
   font-family: "Open Sans", "HelveticaNeue", "Helvetica", sans-serif;
   color: #222;
+  background-color: #fff;
 }
 
 .index-content {
@@ -24,8 +25,6 @@ body {
 
 .post-content {
   margin: 50px;
-  align-self: left;
-  flex-direction: column;
 
   img {
     margin: 5px;
@@ -64,4 +63,3 @@ nav a:hover {
 a.nav.active {
   background: #666;
 }
-
