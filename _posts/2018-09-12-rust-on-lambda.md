@@ -25,7 +25,7 @@ running Rust on Lambda work under the hood.
 
 # How do they work?
 
-## crawbar -- Build a shared library to run via python
+## crowbar -- Build a shared library to run via python
 
 The [`crowbar`](https://github.com/ilianaw/rust-crowbar) project takes
 advantage of the fact that cpython will happily load a shared object file as a
