@@ -4,22 +4,37 @@
 
 @charset "utf-8";
 
+table {
+  border-spacing: 10px;
+  border-collapse: separate;
+}
+
 body {
   display: flex;
   flex-direction: column;
   margin-top: 2%;
   font-family: "Open Sans", "HelveticaNeue", "Helvetica", sans-serif;
   color: #222;
+  background-color: #fff;
 }
 
-h1 {
-  text-align: center;
-}
+.index-content {
+  h1 {
+    text-align: center;
+  }
 
-.content {
   align-self: center;
   display: flex;
   flex-direction: column;
+}
+
+.post-content {
+  margin: 50px;
+
+  img {
+    margin: 5px;
+    max-width: 100%;
+  }
 }
 
 
@@ -53,4 +68,3 @@ nav a:hover {
 a.nav.active {
   background: #666;
 }
-

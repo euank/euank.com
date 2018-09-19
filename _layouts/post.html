@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Euan Kemp &mdash; {{ title }}</title>
+    <title>Euan Kemp &mdash; {{ page.title }}</title>
     <meta charset="utf-8">
     <link rel="shortcut icon" href="/favicon.png">
-    <link rel="stylesheet" type="text/css" href="normalize.css">
+    <link rel="stylesheet" type="text/css" href="/normalize.css">
     <link href="//fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
-    <link rel="stylesheet" type="text/css" href="site.css">
+    <link rel="stylesheet" type="text/css" href="/site.css">
   </head>
   <body>
-    <!-- nav--><!--     .navlinks--><!--         a.active.nav(href="/") Home--><!--         a.nav(href="/projects") Projects--><!--  TODO-->
-    <h1><a href="/">Site Index</a></h1>
-    <div class="content">
+    <header>
+      <nav>
+        <a href="/">Site Index</a>
+      </nav>
+    </header>
+    <div class="post-content">
       {{ content }}
     </div>
   </body>
