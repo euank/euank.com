@@ -132,7 +132,8 @@ cached.
 ## Results
 
 And now for the results! The below graph shows data collected over around 40
-executions of each Lambda function (half warm and half cold).
+executions of each Lambda function (half warm and half cold). The median value
+is annotated beside each box.
 
 ![Lambda plot](/imgs/lambda-bench/plot.png)
 
@@ -173,15 +174,24 @@ fairly small.
 The difference in size between Go binaries and the other binaries is the best
 explanation I've got for why Go's so slow here.
 
-## Conclusion (Benchmarks)
+### So is crowbar faster?
 
 
 The sample size is not large enough to conclusively call one or the other
 faster for cold starts. I think it is fair to say that crowbar and Rust on AWS
-Lambda both perform quite well. The cold and warm startup times are quite
-comparable for a trivial function, and I expect larger Rust functions will also
-have similar performance under either framework; after all, the Rust code
-should be the same once the framework code is done.
+Lambda both perform quite well.
+
+There are also additional factors which this benchmark ignored, but may matter
+in real-world environments. For example, normally the size of the deployment zipfile between crowbar
+and Rust on AWS Lambda would differ by a smaller percent since the function
+handler would be larger, but the framework only intrudces a constant increase in size.
+If the size of the deployment zip file is significant, a real world deployment would likely show better numbers for Rust on AWS Lambda.
+
+Most real world deployments will also pass complicated JSON data to the function, not just an empty string. The details of how the Python and Go environment pass in parameters could have different performance characteristics.
+
+Given the benchmark run here, it's reasonable to conclude both crowbar and Rust
+on AWS Lambda perform similarly, but additional experimentation and data could
+result in a different, more refined, conclusion.
 
 # Ease of Use
 
