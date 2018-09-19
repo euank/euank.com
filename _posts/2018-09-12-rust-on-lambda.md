@@ -58,8 +58,8 @@ the zipfile actually has to contain a Go binary.
 
 Rust on AWS Lambda runs Rust code in the Go Lambda environment, and unlike the
 previous two methods, it doesn't require any non-Rust code at all. Rust on AWS
-Lambda implements the same protocol the Go binary does and provides library
-code to ease writing a handler function.
+Lambda implements the same protocol AWS's Lambda Go library does, and provides
+additional library code to ease writing a handler function.
 
 # Benchmarks -- Which way is the fastest?
 
