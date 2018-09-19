@@ -175,11 +175,13 @@ explanation I've got for why Go's so slow here.
 
 ## Conclusion (Benchmarks)
 
-I think it's fair to say that crowbar and Rust on AWS Lambda both perform quite
-well (in fact, both seem to perform better than the language intended to run in
-their respective environments).
 
-The cold and warm startup times are quite comparable for trivial programs.
+The sample size is not large enough to conclusively call one or the other
+faster for cold starts. I think it is fair to say that crowbar and Rust on AWS
+Lambda both perform quite well. The cold and warm startup times are quite
+comparable for a trivial function, and I expect larger Rust functions will also
+have similar performance under either framework; after all, the Rust code
+should be the same once the framework code is done.
 
 # Ease of Use
 
@@ -240,8 +242,9 @@ In conclusion, here's one last table to explain why I think you might prefer one
 
 | Feature | Crowbar | Rust on AWS Lambda       |
 |:----------|:--------------|:------------------|
-| Pun in name | &#10004;      | &#10006;       |
-| Faster than Go | &#10004;      | &#10004;       |
-| Pure Rust | &#10006;      | &#10004;       |
+| Pun in name | <span style="color: green"><b>✓</b></span>      | <span style="color: red"><b>✗</b></span>    |
+| Faster than Go |  <span style="color: green"><b>✓</b></span>   |   <span style="color: green"><b>✓</b></span>    |
+| Pure Rust | <span style="color: red"><b>✗</b></span> | <span style="color: green"><b>✓</b></span>    |
 | Cold startup overhead | ≈ 250ms    | ≈ 240ms      |
 | Warm startup overhead | ≈ 7ms      |  ≈ 10ms      |
+| Requires linking to python | <span style="color: red"><b>✓</b></span> | <span style="color: green"><b>✗</b></span>    |
