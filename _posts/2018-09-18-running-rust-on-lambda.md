@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Rust on Lambda
+title: Running Rust on Lambda
 ---
 
 # Running Rust on Lambda
