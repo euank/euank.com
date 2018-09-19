@@ -6,16 +6,16 @@ title: Rust on Lambda
 # Running Rust on Lambda
 
 [AWS Lambda](https://aws.amazon.com/lambda/), at the time of writing, does not
-support [Rust](https://rust-lang.org/). Fortunately, a few entrepreneurial
-individuals have ignored the lack of support and made it work anyways! The main
-projects I know that allow running rust on Lambda are
-[`crowbar`](https://github.com/ilianaw/rust-crowbar) and [Rust on AWS
+support [Rust](https://rust-lang.org/). Fortunately, some wonderful folks have
+ignored the lack of support and made it work anyways! The main projects I know
+that allow running rust on Lambda are
+[crowbar](https://github.com/ilianaw/rust-crowbar) and [Rust on AWS
 Lambda](https://github.com/srijs/rust-aws-lambda). There are other notable
 projects, such as [lando](https://github.com/softprops/lando) and
 [serverless-rust](https://github.com/softprops/serverless-rust), which
-use `crowbar` under the hood.
+use crowbar under the hood.
 
-Given both `crowbar` and `Rust on AWS Lambda` exist, it seems reasonable to ask
+Given both crowbar and Rust on AWS Lambda exist, it seems reasonable to ask
 "which of these is faster? Which should I use?" This blog post presents a brief
 introduction to the projects, some toy benchmarks, and some information on
 usability.
@@ -27,7 +27,7 @@ running Rust on Lambda work under the hood.
 
 ## crowbar -- Run rust as a python shared library
 
-The [`crowbar`](https://github.com/ilianaw/rust-crowbar) project takes
+The [crowbar](https://github.com/ilianaw/rust-crowbar) project takes
 advantage of the fact that cpython will happily load a shared object file as a
 python module.
 Writing a cpython module in Rust is fairly easy using the [rust-cpython](https://github.com/dgrunwald/rust-cpython) project.
