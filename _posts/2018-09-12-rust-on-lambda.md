@@ -28,9 +28,9 @@ running Rust on Lambda work under the hood.
 ## crowbar -- Run rust as a python shared library
 
 The [crowbar](https://github.com/ilianaw/rust-crowbar) project takes
-advantage of the fact that cpython will happily load a shared object file as a
+advantage of the fact that `cpython` will happily load a shared object file as a
 python module.
-Writing a cpython module in Rust is fairly easy using the [rust-cpython](https://github.com/dgrunwald/rust-cpython) project.
+Writing a `cpython` module in Rust is fairly easy using the [rust-cpython](https://github.com/dgrunwald/rust-cpython) project.
 crowbar effectively provides glue code between `rust-cpython` and Lambda's python environment.
 
 ## Various -- Spawn a rust binary, talk over stdin/stdout
@@ -54,7 +54,7 @@ Lambda released support for Go.
 The way Lambda's Go support works is by launching a binary the user uploads and
 then speaking a specific RPC protocol to it over a TCP port.
 AWS provides a library to make it easy to do this in Go, but there's no reason
-the zipfile actually has to contain a Go binary.
+the zip file actually has to contain a Go binary.
 
 Rust on AWS Lambda runs Rust code in the Go Lambda environment, and unlike the
 previous two methods, it doesn't require any non-Rust code at all. Rust on AWS
@@ -182,9 +182,9 @@ faster for cold starts. I think it is fair to say that crowbar and Rust on AWS
 Lambda both perform quite well.
 
 There are also additional factors which this benchmark ignored, but may matter
-in real-world environments. For example, normally the size of the deployment zipfile between crowbar
+in real-world environments. For example, normally the size of the deployment zip file between crowbar
 and Rust on AWS Lambda would differ by a smaller percent since the function
-handler would be larger, but the framework only intrudces a constant increase in size.
+handler would be larger, but the framework only introduces a constant increase in size.
 If the size of the deployment zip file is significant, a real world deployment would likely show better numbers for Rust on AWS Lambda.
 
 Most real world deployments will also pass complicated JSON data to the function, not just an empty string. The details of how the Python and Go environment pass in parameters could have different performance characteristics.
