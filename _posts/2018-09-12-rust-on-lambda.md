@@ -10,10 +10,10 @@ support [Rust](https://rust-lang.org/). Fortunately, a few entrepreneurial
 individuals have ignored the lack of support and made it work anyways! The main
 projects I know that allow running rust on Lambda are
 [`crowbar`](https://github.com/ilianaw/rust-crowbar) and [Rust on AWS
-Lambda](https://github.com/srijs/rust-aws-lambda). There are other projects,
-such as [lando](https://github.com/softprops/lando) and
+Lambda](https://github.com/srijs/rust-aws-lambda). There are other notable
+projects, such as [lando](https://github.com/softprops/lando) and
 [serverless-rust](https://github.com/softprops/serverless-rust), which
-ultimately use `crowbar` under the hood.
+use `crowbar` under the hood.
 
 Given both `crowbar` and `Rust on AWS Lambda` exist, it seems reasonable to ask
 "which of these is faster? Which should I use?" This blog post presents a brief
@@ -25,7 +25,7 @@ running Rust on Lambda work under the hood.
 
 # How do they work?
 
-## crowbar -- Build a shared library to run via python
+## crowbar -- Run rust as a python shared library
 
 The [`crowbar`](https://github.com/ilianaw/rust-crowbar) project takes
 advantage of the fact that cpython will happily load a shared object file as a
@@ -55,8 +55,11 @@ The way Lambda's Go support works is by launching a binary the user uploads and
 then speaking a specific RPC protocol to it over a TCP port.
 AWS provides a library to make it easy to do this in Go, but there's no reason
 the zipfile actually has to contain a Go binary.
-Rust on AWS Lambda runs Rust code in the Go Lambda environment, but unlike the
-previous two methods, it doesn't require any non-Rust code at all.
+
+Rust on AWS Lambda runs Rust code in the Go Lambda environment, and unlike the
+previous two methods, it doesn't require any non-Rust code at all. Rust on AWS
+Lambda implements the same protocol the Go binary does and provides library
+code to ease writing a handler function.
 
 # Benchmarks -- Which way is the fastest?
 
@@ -90,16 +93,16 @@ effectively start from scratch.
 ## Methodology
 
 All of the lambda functions, benchmark code, and results are available in [this
-repository](https://github.com/euank/lambda-bench).
+repository](https://github.com/euank/lambda-bench/tree/benchmark-2018-09).
 
 All of data was collected within 3 days of September 14th, 2018 in the
 `us-west-2` region. This matters because Lambda's performance will doubtlessly
 change over time (hopefully for the better).
 I measured "cold" and "warm" starts. For my purposes, a lambda's start was
-considered to be "cold" when no other lambda had been executed in that AWS
+considered to be "cold" when no other Lambda functions had been executed in that AWS
 account for 45 minutes.
 A "warm" start was considered to be any additional run within a short period,
-under a minute, after a previous execution of the lambda in question.
+under a minute, after a previous execution of the function in question.
 
 In practice, this meant my data was collected by going through the following steps:
 
@@ -134,7 +137,7 @@ executions of each Lambda function (half warm and half cold).
 ![Lambda plot](/imgs/lambda-bench/plot.png)
 
 The raw data is available
-[here](https://github.com/euank/lambda-bench/blob/d5b3dda1/results-2018-09-14/merged.csv)
+[here](https://github.com/euank/lambda-bench/tree/benchmark-2018-09/results-2018-09-14/merged.csv)
 if you wish to process it for your own purposes.
 
 The main data I was interested in was the cold execution time. We can
@@ -170,7 +173,7 @@ fairly small.
 The difference in size between Go binaries and the other binaries is the best
 explanation I've got for why Go's so slow here.
 
-## Conclusion
+## Conclusion (Benchmarks)
 
 I think it's fair to say that crowbar and Rust on AWS Lambda both perform quite
 well (in fact, both seem to perform better than the language intended to run in
@@ -180,13 +183,13 @@ The cold and warm startup times are quite comparable for trivial programs.
 
 # Ease of Use
 
-Now that we've seen both crowbar and Rust on AWS Lambda have very similar
+Now that we've seen both crowbar and Rust on AWS Lambda have similar
 performance, let's look at the ease of use of each.
 
 ## crowbar
 
-It took me longer to get a working crowbar Lambda Function than all the others
-combined.
+It took me longer to get a working crowbar Lambda function than all the other
+test function's combined.
 Building a dynamically linked shared library in Rust is fairly easy.
 Building one for a cloud environment that might have a broken python
 configuration is a bit harder.
@@ -197,7 +200,9 @@ but it's also difficult to debug. If you're curious, it invokes python code
 to determine various linker flags rather than invoking the more standard
 `pkg-config`.
 
-Ultimately, I had to add [this](https://github.com/euank/lambda-bench/blob/d5b3dda19848b9ed237dfad62c9a88f790b4e2ee/crowbar/Makefile#L12) strange line to my Makefile to get my crate to link at all.
+Ultimately, I had to add
+[this](https://github.com/euank/lambda-bench/blob/d5b3dda19848b9ed237dfad62c9a88f790b4e2ee/crowbar/Makefile#L12)
+strange line to my Makefile to get my crowbar Lambda function to link at all.
 
 Furthermore, I hear I'm getting off easy because I don't have to deal with
 linking against [openssl](https://github.com/ilianaw/rust-crowbar/issues/20),
@@ -214,13 +219,29 @@ a working binary by default.
 
 Fortunately, the `lambci` project has a wonderful [`go-build`](https://github.com/lambci/docker-lambda/blob/v0.15.3/go1.x/build/Dockerfile) image which makes building a Rust on AWS Lambda function [fairly straightforward](https://github.com/euank/lambda-bench/blob/d5b3dda19848b9ed237dfad62c9a88f790b4e2ee/rust-aws-lambda/Makefile).
 
-It's also possible to create statically linked Rust binaries, but it's still a bit tricky.
+It's also possible to create statically linked Rust binaries using musl, but
+I've found that to be tricky in the past so I went with the `docker` approach.
 
-## Conclusion
+# Conclusion
 
-I found Rust on AWS Lambda to be easier to get deployed, in no small part due
-to not having to deal with Lambda's messily configured libpython.
-
+I found Rust on AWS Lambda to be easier to get deployed.
 Both crowbar and Rust on AWS Lambda required building in a docker container due
 to library differences, but for Rust on AWS Lambda, that was the only hurdle to
 leap over.
+
+On the performance front, I think both Rust on AWS Lambda and crowbar perform
+quite well, and I suspect they'll have very similar performance for real
+workloads, though further experimentation on that front may be needed.
+
+I think that they're both great projects, but I personally will be using Rust
+on AWS Lambda to fulfill my next Rust-based Lambda function need.
+
+In conclusion, here's one last table to explain why I think you might prefer one or the other:
+
+| Feature | Crowbar | Rust on AWS Lambda       |
+|:----------|:--------------|:------------------|
+| Pun in name | &#10004;      | &#10006;       |
+| Faster than Go | &#10004;      | &#10004;       |
+| Pure Rust | &#10006;      | &#10004;       |
+| Cold startup overhead | ≈ 250ms    | ≈ 240ms      |
+| Warm startup overhead | ≈ 7ms      |  ≈ 10ms      |
