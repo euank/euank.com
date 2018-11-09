@@ -1,5 +1,6 @@
 sass:
   sass_dir: _sass
+highlighter: rouge
 
 exclude:
 - vendor
