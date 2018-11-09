@@ -3,7 +3,9 @@ layout: post
 title: S3's CORS is dumb. Here's how to ignore it!
 ---
 
-# Introduction
+# S3's CORS is dumb. Here's how to ignore it!
+
+## Introduction
 
 Today we're going to talk about AWS S3's (lack of) Cross-Origin Resource Sharing (CORS) headers and why the
 whole thing is silly in the context of S3.
