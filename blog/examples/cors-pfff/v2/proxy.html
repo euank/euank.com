@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://sdk.amazonaws.com/js/aws-sdk-2.349.0.min.js"></script>
+        <script>
+            window.addEventListener('message', function(event) {
+                const result = {};
+                const creds = new AWS.Credentials(event.data.creds);
+                AWS.config.update({region: 'us-east-1', credentials: creds});
+                const s3 = new AWS.S3();
+                s3.listBuckets().promise()
+                .then((data) => { 
+                    result.error = false;
+                    result.buckets = data.Buckets;
+                    result.listingBuckets = false;
+                    event.source.postMessage(result, event.origin);
+                })
+                .catch((err) => {
+                    result.listingBuckets = false;
+                    result.errorText = err.toString();
+                    result.error = true;
+                    event.source.postMessage(result, event.origin);
+                });
+            }, false);
+        </script>
+    </head>
+</html>
