@@ -20,7 +20,7 @@ talk about some existing art for breaking it.
 
 Before we get into the S3 side of things, let me quickly explain what CORS is.
 There's dozens of explanations online, but many of them get bogged down in technical details immediately.
-I'll try to explain it by talking about the specfic problem it solves, and the
+I'll try to explain it by talking about the specific problem it solves, and the
 high level details of how it solves it. I won't go too far into the weeds since
 only a general understanding is needed to understand the rest of the blog post.
 
@@ -40,17 +40,17 @@ fetch('https://bankwebsite.example/user/my-accounts', {credentials: 'include'})
 ```
 
 Fortunately, that code will fail because Cross-Origin requests made via
-Javascript are blocked by default due to CORS. "Origin" here means the domain
+JavaScript are blocked by default due to CORS. "Origin" here means the domain
 name, in this case `https://take.mallorys-evil.test`, as sent in the [Origin
 header](https://developer.mozilla.org/docs/Web/HTTP/Headers/Origin). If the
 Origin on the request doesn't exactly match the origin the request is to, it
 will be blocked by default.
 
-Note that all Javascript-initiated requests, even those without credentials, are blocked. Other types of requests, like `<img src="https://bankwebsite.example/logo.png" />` (which results in a browser-initiated request) are not blocked, but Javascript's ability to manipulate these tags is [restricted](https://developer.mozilla.org/docs/Web/HTML/CORS_enabled_image).
+Note that all JavaScript-initiated requests, even those without credentials, are blocked. Other types of requests, like `<img src="https://bankwebsite.example/logo.png" />` (which results in a browser-initiated request) are not blocked, but JavaScript's ability to manipulate these tags is [restricted](https://developer.mozilla.org/docs/Web/HTML/CORS_enabled_image).
 
 What if the bank above also hosts a mobile website at
 `https://m.bankwebsite.example`, and wants to send a request to an endpoint on
-`https://bankwebsite.example` from Javascript? Since the Javascript running on
+`https://bankwebsite.example` from JavaScript? Since the JavaScript running on
 the mobile website can be trusted, that should be perfectly fine, but the
 Origin differs, so it will still be blocked... Until the developer adds an
 appropriate `CORS` header to `https://bankwebsite.example`! In this specific
@@ -63,7 +63,7 @@ Access-Control-Allow-Headers: Content-Type
 Access-Control-Allow-Credentials: true
 ```
 
-This set of headers lets the browser know to allow Javascript running on `https://m.bankwebsite.example` to make requests to `https://bankwebsite.example`, including with credentials (cookies) set.
+This set of headers lets the browser know to allow JavaScript running on `https://m.bankwebsite.example` to make requests to `https://bankwebsite.example`, including with credentials (cookies) set.
 
 Now, there's more to CORS than that (namely preflight requests, other special
 cases beyond images, and other such details), but the above should be enough
@@ -72,7 +72,7 @@ background for the purpose of this post.
 ## What's S3's CORS setup?
 
 By default, S3 provides no CORS headers, meaning all requests to the S3 API and
-objects in S3 buckets from Javascript are blocked.
+objects in S3 buckets from JavaScript are blocked.
 
 The [JavaScript SDK's
 documentation](https://aws.amazon.com/developers/getting-started/browser/)
