@@ -173,7 +173,7 @@ This looks like reasonable code, but if we run it [here](/blog/examples/cors-pff
 
 The error it provides is a rather generic "NetworkError", but if you look at the browser console, it goes into more detail in explaining that CORS blocked it.
 
-![Image of CORS errors in browser console](imgs/cors.png) # TODO
+![Image of CORS errors in browser console](/imgs/cors-pfff/browser-console-cors-blocked.png)
 
 What if we upload exactly the same code into an S3 bucket? I've gone ahead and put the exact same `bucket_lister.html` in a bucket named `euank-com-examples`, available [here](https://s3.amazonaws.com/euank-com-examples/cors-pfff/v1/bucket_lister.html). As you can see, the same code now works!
 
