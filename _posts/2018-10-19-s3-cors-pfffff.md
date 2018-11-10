@@ -41,10 +41,10 @@ fetch('https://bankwebsite.example/user/my-accounts', {credentials: 'include'})
 
 Fortunately, that code will fail because Cross-Origin requests made via
 JavaScript are blocked by default due to CORS. "Origin" here means the domain
-name, in this case `https://take.mallorys-evil.test`, as sent in the [Origin
-header](https://developer.mozilla.org/docs/Web/HTTP/Headers/Origin). If the
-Origin on the request doesn't exactly match the origin the request is to, it
-will be blocked by default.
+name as sent in the as sent in the [Origin
+header](https://developer.mozilla.org/docs/Web/HTTP/Headers/Origin), in this
+case `https://take.mallorys-evil.test`. If the Origin on the request doesn't
+exactly match the origin of request's target, it will be blocked by default.
 
 Note that all JavaScript-initiated requests, even those without credentials, are blocked. Other types of requests, like `<img src="https://bankwebsite.example/logo.png" />` (which results in a browser-initiated request) are not blocked, but JavaScript's ability to manipulate these tags is [restricted](https://developer.mozilla.org/docs/Web/HTML/CORS_enabled_image).
 
@@ -63,10 +63,12 @@ Access-Control-Allow-Headers: Content-Type
 Access-Control-Allow-Credentials: true
 ```
 
-This set of headers lets the browser know to allow JavaScript running on `https://m.bankwebsite.example` to make requests to `https://bankwebsite.example`, including with credentials (cookies) set.
+This set of headers lets the browser know to allow JavaScript running on
+`https://m.bankwebsite.example` to make requests to
+`https://bankwebsite.example`, including with credentials (cookies) set.
 
 Now, there's more to CORS than that (namely preflight requests, other special
-cases beyond images, and other such details), but the above should be enough
+cases beyond images, etc), but the above should be enough
 background for the purpose of this post.
 
 ## What's S3's CORS setup?
