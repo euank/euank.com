@@ -360,7 +360,7 @@ Still, I would be a little wary of this hack. It is nearly certain that the
 fake XMLHttpRequest XHook simulates has differences from the real thing, and
 changes to the AWS SDK in the future might run into these edge cases.
 
-It is worth noting that it, like the previous solution, exhibits additional
+It is worth noting that this solution, like the previous one, exhibits additional
 latency due to needing to load an iframe and communicate with it.
 
 ## Regions
@@ -371,7 +371,7 @@ different origin against which to break CORS. It turns out CORS circumvention
 is a regionalized venture :).  It's easy enough to adapt anything above to
 multiple regions simply by having more buckets.
 
-# Concluding Thoughts
+## Concluding Thoughts
 
 The (lack of) CORS headers on S3's endpoints do nothing to stop anyone
 determined to avoid them. I suspect that the only reason they're not
