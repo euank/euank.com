@@ -288,7 +288,7 @@ possible to do something even more general and clever.
 Ultimately, the only thing that actually needs to run in the iframe is the
 specific XMLHttpRequests which would otherwise be blocked by CORS.
 
-[Jaime Pillora](Jaime Pillora), in 2013, created a series of projects to handle this very problem at the XMLHttpRequest layer. These projects are [XHook](https://github.com/jpillora/xhook), [XDomain](https://github.com/jpillora/xdomain), and [S3 Hook](https://github.com/jpillora/s3hook).
+[Jaime Pillora](https://github.com/jpillora), in 2013, created a series of projects to handle this very problem at the XMLHttpRequest layer. These projects are [XHook](https://github.com/jpillora/xhook), [XDomain](https://github.com/jpillora/xdomain), and [S3 Hook](https://github.com/jpillora/s3hook).
 
 In fact, his [S3 Hook example](http://jpillora.com/s3hook/) is suspiciously
 similar to the example I've been using (but much more fleshed out).
