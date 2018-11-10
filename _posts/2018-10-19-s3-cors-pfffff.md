@@ -1,9 +1,9 @@
 ---
 layout: post
-title: S3's CORS is dumb. Here's how to ignore it!
+title: S3 CORS is dumb. Here's how to ignore it!
 ---
 
-# S3's CORS is dumb. Here's how to ignore it!
+# S3 CORS is dumb. Here's how to ignore it!
 
 ## Introduction
 
@@ -116,7 +116,7 @@ some may be useful to browse and/or manipulate from client-side JavaScript.
 By default, buckets do not have CORS headers though, so in most cases you will
 be foiled by bad defaults.
 
-## Breaking S3's CORS
+## Breaking S3 CORS
 
 CORS, no matter what, never blocks a request from the same origin. That is to say, if JavaScript is running on `s3.amazonaws.com`, no request to `s3.amazonaws.com` will ever be blocked.
 If only there was a way to run arbitrary JavaScript on that origin... like if they let us upload an html file to `s3.amazonaws.com/my-bucket-name/my-file.html`!
