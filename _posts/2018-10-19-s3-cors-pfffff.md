@@ -13,8 +13,7 @@ whole thing is silly in the context of S3.
 This post is going to first explain a bit about what CORS is and what
 theoretical benefit it it might have for S3 if, you know, it worked.  After
 that, I'll go into a technical explanation of why it totally doesn't actually
-work for S3, including walking through some code to break it.  Finally, I'll
-talk about some existing art for breaking it.
+work for S3, including walking through some code to break it.
 
 ## What is CORS?
 
@@ -24,13 +23,18 @@ I'll try to explain it by talking about the specific problem it solves, and the
 high level details of how it solves it. I won't go too far into the weeds since
 only a general understanding is needed to understand the rest of the blog post.
 
-First, let's talk about why CORS exists by using the cliché example of a bank.
-Assume the user is logged into their bank and the bank shows their account
+At a high level, CORS is a security feature which operates in the context of an
+HTTP request made by a web browser. Every modern browser implements CORS.
+Typically, other HTTP clients (such as cURL) do not.
+
+Let's talk about the problem CORS solves by using the cliché example of a bank.
+Assume the user is logged into their bank's website and can view their account
 information at `https://bankwebsite.example/user/my-accounts`. When the user
 visits that URL directly, the server is able to recognize them and serve up
 their account numbers because the browser sends along a [Cookie](https://developer.mozilla.org/docs/Web/HTTP/Cookies) identifying the user securely.
-While still logged into their bank, the user then visits
-`https://take.mallorys-evil.test` which includes the following JavaScript code:
+While still logged into their bank, the user then visits the malicious site
+`https://take.mallorys-evil.test`, which includes the following JavaScript
+code:
 
 ```js
 fetch('https://bankwebsite.example/user/my-accounts', {credentials: 'include'})
@@ -39,33 +43,34 @@ fetch('https://bankwebsite.example/user/my-accounts', {credentials: 'include'})
   });
 ```
 
-Fortunately, that code will fail because Cross-Origin requests made via
-JavaScript are blocked by default due to CORS. "Origin" here means the domain
-name as sent in the as sent in the [Origin
+Naively, that seems like it could result in Mallory getting access to your bank
+account number. After all, you're logged into your bank in the same web
+browser, and the entire web browser has one big shared Cookie jar. Fortunately,
+CORS is here to save the day!
+All Cross-Origin requests made via JavaScript are blocked by default due to
+CORS. "Origin" here means the domain name as sent in the [Origin
 header](https://developer.mozilla.org/docs/Web/HTTP/Headers/Origin), in this
 case `https://take.mallorys-evil.test`. If the Origin on the request doesn't
-exactly match the origin of request's target, it will be blocked by default.
+exactly match the origin of request's target, it will be blocked by default, and in this case they clearly do not match; `https://take.mallorys-evil.test ≠ https://bankwebsite.example`.
 
 Note that all JavaScript-initiated requests, even those without credentials, are blocked. Other types of requests, like `<img src="https://bankwebsite.example/logo.png" />` (which results in a browser-initiated request) are not blocked, but JavaScript's ability to manipulate these tags is [restricted](https://developer.mozilla.org/docs/Web/HTML/CORS_enabled_image).
 
-What if the bank above also hosts a mobile website at
-`https://m.bankwebsite.example`, and wants to send a request to an endpoint on
-`https://bankwebsite.example` from JavaScript? Since the JavaScript running on
-the mobile website can be trusted, that should be perfectly fine, but the
-Origin differs, so it will still be blocked... Until the developer adds an
-appropriate `CORS` header to `https://bankwebsite.example`! In this specific
-example, the headers would probably look like so:
+What if the bank above moves to a hip new [SPA
+architecture](https://en.wikipedia.org/wiki/Single-page_application) and the
+new `https://bankwebsite.example` uses Ajax to load user information from
+`https://api.bankwebsite.example/user`? Clearly those are different origins, so CORS will deny requests to the API now. How can the bank let the browser know that it really doesn't mind if `https://bankwebsite.example` makes requests to that subdomain?
+That's where CORS headers come in! In this specific example, `https://api.bankwebsite.example`'s server would probably want to add the following headers to its responses:
 
 ```http
-Access-Control-Allow-Origin: https://m.bankwebsite.example
+Access-Control-Allow-Origin: https://bankwebsite.example
 Access-Control-Allow-Methods: POST, GET, OPTIONS
 Access-Control-Allow-Headers: Content-Type
 Access-Control-Allow-Credentials: true
 ```
 
 This set of headers lets the browser know to allow JavaScript running on
-`https://m.bankwebsite.example` to make requests to
-`https://bankwebsite.example`, including with credentials (cookies) set.
+`https://bankwebsite.example` to make requests to
+`https://api.bankwebsite.example`, including with credentials (cookies) set.
 
 Now, there's more to CORS than that (namely preflight requests, other special
 cases beyond images, etc), but the above should be enough
@@ -105,7 +110,10 @@ good reasons to make S3 API calls directly from a user's browser.
 Let's say you want to create an entirely client-side website which allows the
 user to store files in S3 in *their* account.
 
-You could have the user enter their AWS access and secret keys and then use them to make requests from within their browser. This is simple to reason about, and more secure than any similar server-side solution.
+You could have the user enter their AWS access and secret keys and then use
+them to make requests from within their browser. This is simple to reason
+about, and more secure than any similar server-side solution. This, by the way,
+aligns fairly well with the ideals of [unhosted](https://unhosted.org).
 
 Unfortunately for you, CORS will block any requests the browser makes to list or create buckets, even if the user enters correct credentials.
 Your dastardly plan to provide a secure serverless experience has been foiled!
@@ -120,8 +128,8 @@ be foiled by bad defaults.
 
 ## Breaking S3 CORS
 
-CORS, no matter what, never blocks a request from the same origin. That is to say, if JavaScript is running on `s3.amazonaws.com`, no request to `s3.amazonaws.com` will ever be blocked.
-If only there was a way to run arbitrary JavaScript on that origin... like if they let us upload an html file to `s3.amazonaws.com/my-bucket-name/my-file.html`!
+CORS, no matter what, never blocks a request from the same origin. That is to say, if JavaScript is running on `https://s3.amazonaws.com`, no request to `https://s3.amazonaws.com` will ever be blocked.
+If only there was a way to run arbitrary JavaScript on that origin... like if they let us upload an html file to `https://s3.amazonaws.com/my-bucket-name/my-file.html`!
 With that, it's easy to see why CORS on S3 doesn't work. Any origin that allows
 user-submitted arbitrary html content absolutely cannot expect any combination
 of CORS headers to be effective.
@@ -130,17 +138,18 @@ For the sake of having a concrete example, let's say that we wish to build a
 simple client-side webpage that lets a user enter their AWS credentials to
 store content created on the webpage in their S3 bucket.
 
-This falls under the first reason S3's CORS setup matters above. To provide a
-reasonable UX to the user, this webpage will likely want to list their buckets,
-optionally offer to create one, and be able to upload files to an existing
-bucket even if it has no CORS configuration.
+This falls under the first reason mentioned above that S3's missing CORS
+headers may matter. In order to provide a reasonable UX to the user, this
+webpage will likely want to list their buckets, optionally offer to create one,
+and be able to upload files to an existing bucket even if it has no CORS
+configuration.
 
 To keep this blog post short, we'll just write the bucket-lister portion, but
 hopefully the above example use-case makes sense.
 
 A first swing at naively writing this might look like the following (using vuejs):
 
-`bucket_lister.js`:
+`https://euank.com/.../bucket_lister.js`:
 ```js
 var app = new Vue({
   el: '#app',
@@ -196,7 +205,7 @@ As luck would have it, hosting arbitrary HTML on the same origin as S3 is one of
 
 Our second version of the above code is now split into more files. Here's the important snippets:
 
-`proxy.html`:
+`https://s3.amazonaws.com/.../proxy.html`:
 ```html
 <script src="https://sdk.amazonaws.com/js/aws-sdk-2.349.0.min.js"></script>
 <script>
@@ -225,12 +234,12 @@ Our second version of the above code is now split into more files. Here's the im
 </html>
 ```
 
-`bucket_lister.html`:
+`https://euank.com/.../bucket_lister.html`:
 ```html
 <iframe src="https://s3.amazonaws.com/euank-com-examples/cors-pfff/v2/proxy.html" v-on:load="iframeLoaded" style="display:none;"></iframe>
 ```
 
-`bucket_lister.js`:
+`https://euank.com/.../bucket_lister.js`:
 ```javascript
 var app = new Vue({
   el: '#app',
@@ -290,9 +299,7 @@ possible to do something even more general and clever.
 Ultimately, the only thing that actually needs to run in the iframe is the
 specific XMLHttpRequests which would otherwise be blocked by CORS.
 
-[Jaime Pillora](https://github.com/jpillora), in 2013, created a series of projects to handle this very problem at the XMLHttpRequest layer. These projects are [XHook](https://github.com/jpillora/xhook), [XDomain](https://github.com/jpillora/xdomain), and [S3 Hook](https://github.com/jpillora/s3hook).
-
-In fact, his [S3 Hook example](http://jpillora.com/s3hook/) is suspiciously
+[Jaime Pillora](https://github.com/jpillora), in 2013, created a series of projects to handle this very problem at the XMLHttpRequest layer. These projects are [XHook](https://github.com/jpillora/xhook), [XDomain](https://github.com/jpillora/xdomain), and [S3 Hook](https://github.com/jpillora/s3hook). In fact, his [S3 Hook example](http://jpillora.com/s3hook/) is suspiciously
 similar to the example I've been using (but much more fleshed out).
 
 Unfortunately, it's hacky in its own way. Sure, the proxy implementation can be
@@ -306,12 +313,12 @@ eventually stumbled upon.
 
 With the afore-mentioned patch to XHook, it's possible to rewrite our original example as:
 
-`proxy.html`:
+`https://s3.amazonaws.com/..../proxy.html`:
 ```html
 <script src="https://s3.amazonaws.com/euank-com-examples/cors-pfff/v3/xdomain.min.js" master="*"></script>
 ```
 
-`bucket_lister.html`:
+`https://euank.com/.../bucket_lister.html`:
 ```html
 ...
 <script src="https://s3.amazonaws.com/euank-com-examples/cors-pfff/v3/xdomain.js" slave="https://s3.amazonaws.com/euank-com-examples/cors-pfff/v3/proxy.html"></script>
@@ -321,7 +328,7 @@ With the afore-mentioned patch to XHook, it's possible to rewrite our original e
 ...
 ```
 
-`bucket_lister.js`:
+`https://euank.com/.../bucket_lister.js`:
 ```js
 var app = new Vue({
   el: '#app',
@@ -356,7 +363,8 @@ You can see this code working [here](/blog/examples/cors-pfff/v3/bucket_lister.h
 
 Notably, the code in `bucket_lister.js` making use of the AWS SDK doesn't have
 do anything different; the XMLHttpRequests to the proxy's origin are
-transparently routed through an iframe to the proxy with no ceremony.
+transparently routed through an iframe to the proxy without the AWS SDK
+having to know a thing.
 
 Still, I would be a little wary of this hack. It is nearly certain that the
 fake XMLHttpRequest XHook simulates has differences from the real thing, and
@@ -375,15 +383,15 @@ multiple regions simply by having more buckets.
 
 ## Concluding Thoughts
 
-The (lack of) CORS headers on S3's endpoints do nothing to stop anyone
-determined to avoid them. I suspect that the only reason they're not
-present to begin with is because when S3 was originally released (in 2006),
-CORS was not in wide-spread use (added to Firefox in
+The (lack of) CORS headers on S3's endpoints do nothing to stop any determined
+developer. I suspect that the only reason they're not present to begin with is
+because when S3 was originally released (in 2006), CORS was not in wide-spread
+use (added to Firefox in
 [2008](https://bugzilla.mozilla.org/show_bug.cgi?id=389508), if you were
 curious). Once S3 didn't have CORS headers, it was more difficult to add them
 -- after all, clearly things are working just fine without them, right? It only
 leads to multiple pages of the AWS SDK docs having to explain the silly-ness
-and why some SDK features don't work from the JavaScript SDK in the browser.
+and [quite](https://stackoverflow.com/questions/29901725/how-to-list-aws-s3-buckets-using-amazon-javascript-sdk) [a](https://forums.aws.amazon.com/thread.jspa?threadID=201479) [few](https://stackoverflow.com/questions/35004258/cors-error-with-listbuckets-in-aws-js-sdk) [confused](https://github.com/aws/aws-sdk-js/issues/1939) [developers](https://forums.aws.amazon.com/thread.jspa?threadID=179355&tstart=0).
 
 In practice, S3's CORS headers should rarely matter since it is usually neither
 good UX nor a good idea to implement software that needs to access top-level S3
