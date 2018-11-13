@@ -383,7 +383,7 @@ multiple regions simply by having more buckets.
 
 ## Concluding Thoughts
 
-The (lack of) CORS headers on S3's endpoints do nothing to stop any determined
+The lack of CORS headers on S3's endpoints does nothing to stop any determined
 developer. I suspect that the only reason they're not present to begin with is
 because when S3 was originally released (in 2006), CORS was not in wide-spread
 use (added to Firefox in
@@ -397,4 +397,4 @@ In practice, S3's CORS headers should rarely matter since it is usually neither
 good UX nor a good idea to implement software that needs to access top-level S3
 APIs from the browser.  However, if you find yourself running into this issue,
 hopefully this blog post will help you to open an iframe and breeze right
-through them.
+through.
