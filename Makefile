@@ -1,5 +1,5 @@
 .PHONY: all serve docker-image sync-examples
-all: sync-examples
+all:
 	bundle exec jekyll build
 
 serve:
