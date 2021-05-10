@@ -35,7 +35,7 @@ let
   };
 in
 dockerTools.buildImage {
-  name = "171940471906.dkr.ecr.us-west-1.amazonaws.com/euank-com";
+  name = "171940471906.dkr.ecr.us-west-2.amazonaws.com/euank-com";
   config = {
     Cmd = [ "/bin/nginx" "-c" "/etc/nginx/nginx.conf" "-g" "daemon off;" ];
   };
