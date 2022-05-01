@@ -1,6 +1,7 @@
 ---
 layout: post
 title: Bisecting Linux with NixOS
+hidden: true
 ---
 
 ## Bisecting the Linux Kernel with NixOS
