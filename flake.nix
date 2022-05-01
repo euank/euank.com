@@ -1,5 +1,5 @@
 {
-  description = "A very basic flake";
+  description = "Flake to build the site image";
 
   outputs = { self, nixpkgs }:
   let image = import ./image.nix { inherit nixpkgs; }; in {
