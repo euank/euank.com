@@ -47,7 +47,7 @@ configuration to a qemu VM image. So far, these VMs have been managed via the
 usual `nixos-rebuild switch --flake '.#k8s-worker'` mechanism, but it seemed
 like it would be fewer steps to start with a fresh VM each time for the bisect.
 
-I started by thinning down the [nixos configuration](TODO) a bit, and then made that into a qemu image:
+I started by thinning down the [nixos configuration](https://github.com/euank/nixos-linux-bisect-post/blob/465af387e8035042267d8fd0a5f2da2f043aff4f/repro/configuration.nix) a bit, and then [made that into a qemu image](https://github.com/euank/nixos-linux-bisect-post/commit/e743ac8c9acefe667906f8e65088b3a5b61a3c54):
 
 ```nix
 # flake.nix
@@ -69,6 +69,7 @@ qemuImage = (import "${nixpkgs}/nixos/lib/make-disk-image.nix") {
     .config;
 };
 ```
+<small>[source](https://github.com/euank/nixos-linux-bisect-post/blob/e743ac8c9acefe667906f8e65088b3a5b61a3c54/flake.nix#L31-L48)</small>
 
 Nice and simple!
 
@@ -101,6 +102,7 @@ in {
   # ...
 }
 ```
+<small>[source](https://github.com/euank/nixos-linux-bisect-post/blob/4dbbbd1b787ea694c6b9cb13a90cafcd1f671105/repro/configuration.nix#L8-L16)</small>
 
 It was a little annoying that I had to specify a correct kernel version (or
 else NixOS would refuse to build it, complaining "Error: modDirVersion x.y.z
@@ -170,7 +172,7 @@ for i in $(seq 1 15); do
 done
 ```
 
-This also needed some small modifications to `repro/configuration.nix`:
+This also needed some [small modifications](https://github.com/euank/nixos-linux-bisect-post/commit/2d85eada573ebf9fea34820162cbaf31535c69b3) to `repro/configuration.nix`:
 
 ```nix
 # repro/configuration.nix
@@ -189,6 +191,7 @@ let
   };
 # ...
 ```
+<small>[source](https://github.com/euank/nixos-linux-bisect-post/blob/2d85eada573ebf9fea34820162cbaf31535c69b3/repro/configuration.nix#L8-L19)</small>
 
 From here, it was a simple matter of:
 
