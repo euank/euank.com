@@ -3,6 +3,14 @@ layout: post
 title: Bisecting Linux with NixOS
 ---
 
+## Bisecting the Linux Kernel with NixOS
+
+This post walks through a pair of `git bisect`s I performed in order to
+understand a kernel bug.
+
+The focus of the post is on the methodology used for the `git bisect`s, and on
+how NixOS helped or hindered parts of the proces.
+
 ### Background
 
 Every bisect begins with some sort of story, and this one's no different.
@@ -39,7 +47,7 @@ repro. You know what this means? Yup, git bisect time!
 #### Git bisecting NixOS VMs
 
 The real repo for these VM's NixOS configurations isn't public (secrets are
-hard, sorry!), so I've made an approximation of the repo for the purpose of the
+hard, sorry!), so I've made an [approximation of the repo](https://github.com/euank/nixos-linux-bisect-post) for the purpose of the
 blog post, which I'll use to demonstrate the rest of the git bisect process.
 
 One of the great things about NixOS is how easy it is to go from a NixOS
@@ -112,7 +120,7 @@ seemed like something easy enough to work with!
 I made one final check that the current `master` branch of `torvalds/linux`
 reproduced the bug (it did). With that, we finally get to our bisect script:
 
-(saved as 'bisect.sh' in a checkout of the linux kernel)
+(saved as `bisect.sh` in a checkout of the linux kernel)
 ```bash
 #!/usr/bin/env bash
 
@@ -205,7 +213,10 @@ $ git bisect run ./bisect.sh
 
 and going to sleep.
 
-----
+<figure>
+  <img width="300px" src="/imgs/sleepy-rp.jpg" alt="image of a sleeping red panda"/>
+  <figcaption><i>zzz sleep interlude</i></figcaption>
+</figure>
 
 Let me tell you, the feeling of waking up and seeing the that a bisect you left running overnight not only completed, but seems to have found the right answer... it's great.
 
@@ -253,12 +264,12 @@ of the host kernel!
 Now, initially I was thrilled at the prospect. The last bisect was easy thanks
 to the power of NixOS! Unfortunately, this enthusiasm didn't last long.
 
-### git bisecting 2: no VMs, old tools, and eventually no NixOS
+### bisect 2: no VMs, old tools, and eventually no NixOS
 
-Things went downhill rapidly. First, just slotting in the 4.12 kernel to the
-NixOS `pkgs.linuxPackages_custom` didn't work. It turns out the first bisect
-went so smoothly in part because I was only working with recent kernel
-versions, but going 4+ years back in time had some bumps.
+Things went downhill rapidly. First, just using the 4.12.5 kernel in
+NixOS's `pkgs.linuxPackages_custom` didn't work this time. It turns out the
+first bisect went so smoothly in part because I was only working with recent
+kernel versions, but going 4+ years back in time had some bumps.
 
 ```
 $ nixos-rebuild build --flake '.#repro-host'
@@ -276,7 +287,9 @@ make[4]: *** [../scripts/Makefile.build:561: scripts/selinux/genheaders] Error 2
 make[5]: *** [scripts/Makefile.host:107: scripts/selinux/mdp/mdp] Error 1
 ```
 
-Okay, fine, it looks like selinux failed to compile. I guess we can just turn that off: `sed -i 's|CONFIG_SECURITY_SELINUX=y|CONFIG_SECURITY_SELINUX=n|' repro-host/kconfig`.
+Okay, fine, it looks like selinux failed to compile. I guess we can just turn that off:
+
+`sed -i 's|CONFIG_SECURITY_SELINUX=y|CONFIG_SECURITY_SELINUX=n|' repro-host/kconfig`.
 
 ```
 $ nixos-rebuild build --flake '.#repro-host
@@ -284,12 +297,12 @@ Unsupported relocation type: R_X86_64_PLT32 (4)
 make[4]: *** [../arch/x86/boot/compressed/Makefile:118: arch/x86/boot/compressed/vmlinux.relocs] Error 1
 ```
 
-This one also took _much_ longer to fail. Anyway, a short google later let me
+This one took _much_ longer to fail. Anyway, a short google later let me
 know that I want an [older binutils](https://unix.stackexchange.com/questions/513921/how-to-get-around-r-x86-64-plt32-error-when-bisecting-the-linux-kernel)
 to fix this. I decided to downgrade NixOS as a whole to an older version to
 hopefully fix any other such issues. The NixOS versions that were around with
 the 4.12 kernel all predate flakes, so I switched to the old
-`/etc/nixos/configuration.nix` + `nix-channel` style of doing things. I didn't
+`/etc/nixos/configuration.nix` + `nix-channel` method of managing things. I didn't
 take as good notes here, but suffice it to say, I still ran into more issues.
 It was also very noticeable that nixpkgs didn't have a good mechanism for
 incremental compilation (having to rebuild the kernel from scratch for each
@@ -310,15 +323,15 @@ and tried to bisect from there.
 
 This change from NixOS to Ubuntu instantly made the process less frustrating.
 Running `make && sudo make modules_install && sudo make install` in a checkout
-of the `4.12.x` kernel _just worked_, incremental compilation and grub entry
-installation and everything. I didn't even have to disable the initrd since
-`make install` built it for me, correctly and without any extra pain.
+of the `4.12.x` kernel _just worked_, giving me incremental compilation and a
+boot loader entry. I didn't even have to disable the initrd since `make
+install` built it for me, correctly and without any extra pain.
 
-Switching to Ubuntu let me find [a commit](https://github.com/torvalds/linux/commit/8d65843c44269c21e95c98090d9bb4848d473853)
-which fixed the bug when applied to the host, allowing me to run a newer or
-older guest kernel without running into any network hangs.
+Switching to Ubuntu let me fairly quickly find [the commit](https://github.com/torvalds/linux/commit/8d65843c44269c21e95c98090d9bb4848d473853)
+which fixed the bug for both older and newer guest kernel versions when applied
+to the host.
 
-This gave me enough information that I finally felt I could [report the issue upstream](https://lore.kernel.org/all/20220424230502.une24mt5sr65qcdk@Enkidudu/T/).
+This gave me enough information that I finally felt I could [report the issue upstream](https://lore.kernel.org/all/20220424230502.une24mt5sr65qcdk@Enkidudu/T/) without just wasting people's time.
 
 I think this is a satisfying conclusion to this investigation. It turns out
 that the 4.12 kernel has a bug in the `vhost` side of `virtio-ring`, and a
@@ -327,7 +340,7 @@ that bug in certain circumstances. This serves as a good forcing function to
 make me finally replace that last Gentoo machine with NixOS, and it also let me
 learn a bit along the way.
 
-Speaking of, let's talk about a few learnings and and possible improvements.
+Speaking of, let's talk about a few learnings and and notes.
 
 
 ### Learnings and Notes
@@ -336,12 +349,11 @@ Speaking of, let's talk about a few learnings and and possible improvements.
 
 I didn't mention it above, but I've done kernel git bisects in the past too. In
 the past, my bisects have been considerably easier for a couple reasons. First,
-in the past I've trimmed down the kernel config significantly more first
-(admittedly, most of my previous bisects were on Gentoo, where I had a
-hand-crafted minimal config already), which massively increased the iteration
-speed. This was a boon. NixOS starts with a much thicker config, and has a
-number of checks in its initrd build process and so on which require a rather
-large baseline of modules.
+I've typically trimmed down the kernel config significantly more (admittedly,
+most of my previous bisects were on Gentoo, where I had a hand-crafted minimal
+config already), which massively increased the iteration speed. NixOS starts
+with a much thicker kernel config, and has a number of checks in its initrd
+build process and so on which require a rather large baseline of modules.
 
 Another difference, touched on above, is that NixOS makes it more difficult to
 use a standalone kernel.
@@ -353,13 +365,15 @@ When possible, it's always great to perform a git bisect by effectively doing:
 ~/linux $ qemu-kvm -kernel arch/x86_64/boot/bzImage <other flags>
 ```
 
-The iteration speed for this setup is great, but NixOS's desire to also own the
-kernel build process, its desire to use an initrd that matches the kernel, and
-the general difficulty of building such an initrd all conspire together to make
-this difficult.
+The iteration speed of the above setup is great, but NixOS's desire to also own
+the kernel build process, its desire to use an initrd that matches the kernel,
+and the general difficulty of building such an initrd all conspire together to
+make this difficult.
 
 Next time I need to do a kernel bisect, I expect I'll spend a little more time
-upfront trying to get it to reproduce in a simpler setup than NixOS.
+upfront trying to reproduce my issue in a setup like the above, where my rootfs
+is a thin buildroot, my kernel has a minimal config, and the vmlinuz binary is
+passed from the host filesystem directly.
 
 That said, the tradeoffs aren't too bad. It doesn't actually matter that much
 whether a `git bisect run` takes 3 hours or 12 hours if you'll be AFK anyway,
@@ -374,7 +388,7 @@ output.
 
 This was largely from trying to understand the bug from just bisect 1 (which
 ended up being unfruitful, the `vhost` side of things is where the interesting
-info was). Still, I want to mention the following links and tools:
+info was). Still, I want to mention the following:
 
 1. [`trace-cmd`](https://man7.org/linux/man-pages/man1/trace-cmd.1.html) is awesome.
     Check out `sudo trace-cmd record -p function_graph -g "vring_interrupt" -g "virtnet_poll" -n "printk"` + `trace-cmd report` if you want to see some fun call graphs
@@ -403,13 +417,13 @@ system configuration using a flake on another machine, or to make impure
 references to files that may not even exist anymore.
 
 Providing a mechanism like this in NixOS would probably require having some
-sort of "impure" boot entry, where a kernel and initrd are used which "don't
-match" the NixOS configuration they boot.
+sort of "impure" boot entry, where a kernel and initrd are used which don't
+"match" the NixOS configuration they boot.
 
 All this said, I think there's still value in providing such a mechanism if
 it's feasible.
 
-##### Externally Built Kernel
+##### Externally built kernel
 
 Currently, NixOS provides `linuxPackages_custom` to build a custom kernel
 version. I couldn't find any equivilant mechanism to point
@@ -423,7 +437,7 @@ someone wiring it up.
 
 On Ubuntu, this is of course trivial: just `make install` them into place.
 
-##### Booting With no Initrd
+##### Booting with no initrd
 
 Skipping the initrd is one way to somewhat speed up iteration times. Most linux
 distros allow you to not have an initrd at all. It's a necessity in many setups
@@ -435,11 +449,14 @@ EFISTUB kernel without an initrd.
 NixOS, on the other hand, has no documented way to boot without an initrd that
 I know of.
 
+This seems to me like it should be feasible to add as a supported option for
+NixOS.
+
 ### Final Thoughts
 
 Git bisecting is fun. I highly recommend using [`git bisect run`](https://lwn.net/Articles/317154/) whenever possible.
 
-It's a testament to the quality of the linux repository that I had zero skips in my git bisects of it (i.e. all commits my bisect needed built and at least booted).
+It's a testament to the quality of the linux repository that I had zero skips in my git bisects of it (i.e. all commits my bisect tried built and at least booted).
 
 Oh, also, update your machines frequently. Updating that VM host any time in
 the past 3 years would have saved me hours of sleep.
