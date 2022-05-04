@@ -6,20 +6,14 @@ hidden: true
 
 ## Bisecting the Linux Kernel with NixOS
 
-This post walks through a pair of `git bisect`s I performed in order to
-understand a kernel bug.
-
-The focus of the post is on the methodology used for the `git bisect`s, and on
-how NixOS helped or hindered parts of the proces.
-
-### Background
+### Introduction
 
 Every bisect begins with some sort of story, and this one's no different.
 
-I run a Kubernetes cluster as a series of libvirt VMs, each running `k3s` via the [NixOS k3s module](https://github.com/NixOS/nixpkgs/blob/3fe4fe90a6f411a677c566cd030eea4b0359f8ef/nixos/modules/services/cluster/k3s/default.nix).
+This story centers around my Kubernetes cluster, which is run as a series of libvirt VMs, each running `k3s` via the [NixOS k3s module](https://github.com/NixOS/nixpkgs/blob/3fe4fe90a6f411a677c566cd030eea4b0359f8ef/nixos/modules/services/cluster/k3s/default.nix).
 
 It won't matter quite yet, but since it will later, I'll also mention that the
-host machine here isn't exactly the most up to date...
+host machine, on which I run these k3s VMs, isn't exactly the most up to date...
 
 ```
 esk@prime-radiant ~ $ uptime -p
@@ -28,33 +22,68 @@ esk@prime-radiant ~ $ uname -r
 4.12.5-gentoo
 ```
 
-Yeah.... Anyway, back to the more immediately relevant details.
+<figure>
+  <img src="/imgs/nixos-bisect/9-10-security-pros.png" width="500px" alt="9/10 security researchers recommend consulting a security professional if your uptime persists for more than 3 years. The 10th security researcher is actually a blackhat hacker"/>
+</figure>
 
-I updated each VM's configuration, including the linux kernel version (to
-5.17), all seemed well, and I carried on... until several hours later one VM's
-network's stopped working, only coming back with a hard reboot (`virsh reset`).
-Over the next day, VM's networks suffered similar failures left and right. I'll
-skip some of the flailing around reverting other config changes, and jump
-straight to "it was the kernel upgrade, reverting back (to 5.10) worked around
-the issue".
+Yeah...
 
-In the course of this, I also realized copying around 3-20GiBs of data
-reproduced it fairly reliably, which was incredibly helpful for figuring out
-what did or didn't fix it.
+Normally, this cluster hums along happily, running various personal projects
+and sites (including this one!). The VMs themselves are fairly up to date, and
+updates have mostly been smooth, with the occasional exception. Speaking of,
+let's talk about the update that leads to the main conflict in this story.
 
-At this point I had two kernel versions, one good, one bad, and a sorta okay
-repro. You know what this means? Yup, git bisect time!
+### A Bumpy Update
 
-#### Git bisecting NixOS VMs
+The initial goal of the update was to switch the pod network from the flannel
+vxlan backend to the [`wireguard backend`](https://github.com/flannel-io/flannel/pull/1230). The actual reasons
+for this update don't end up mattering for this story.
+
+Since these VMs are all running NixOS, my rather naive process for updating them amounts to editing a [`nix flake`](https://nixos.wiki/wiki/Flakes) repo, and doing `ssh k8s-worker-$num "cd config && git pull && sudo nixos-rebuild --flake '.#k8s-worker-$num' switch"`. This isn't ideal, but it's worked so far!
+
+In addition to the pod network changes mentioned above, I did a `nix flake
+update` at some point since the last update. These VM's configurations are
+small enough that, even tracking `nixos-unstable`, blindly updating isn't
+scary.
+
+So, what went wrong? Well, at first, nothing! The VMs all updated, my network
+connectivity metric showed inter-pod communication was functioning, and the
+stuff I hosted was all running with no complaints.
+
+<i>3 hours later</i>
+
+Oh no one of the nodes is unhealthy! Oh no, it's the single ingress node, so everything's offline (aside: normally there're multiple, but I went down to just one for the update. Not for any good reason either)!
+
+Fine, if I can't ssh in, hard-reset: `sudo virsh reset <node-name>`. Phew, at least everything came back up... surely that was just an errant kernel panic and I'll worry about it later.
+
+<i>3 hours later</i>
+
+Oh no one of the nodes is unhealthy! Oh no, it's the single ingress node!
+
+I'm sure you can see the pattern. What ensued was a frustrating debugging
+session where the network failed seemingly with no exact pattern, and the
+longer I tried to observe the broken state, the longer my stuff was offline.
+
+For the sake of brevity, I'll skip to the answer: it turns out the `nix flake
+update` above switched the default kernel version (from 5.10 to 5.15), and
+reverting back to 5.10 (explicitly setting `boot.kernelPackages = pkgs.linuxPackages_5_10;`) got me back to a stable cluster.
+
+After sleeping on this, I also realized that the ingress node going offline might mean that the network failure could be triggered by copying a lot of data. Spinning up a test VM and running `scp nixos.iso tmp-test-node:/dev/null` repeatedly showed that yes, indeed, after anywhere from 3-20GiB, the network would fail.
+
+At this point I had two kernel versions, one good, one bad, and a repro. You
+know what this means? Yup, git bisect time!
+
+### Git bisecting NixOS VMs
 
 The real repo for these VM's NixOS configurations isn't public (secrets are
 hard, sorry!), so I've made an [approximation of the repo](https://github.com/euank/nixos-linux-bisect-post) for the purpose of the
-blog post, which I'll use to demonstrate the rest of the git bisect process.
+blog post, which I'll use to demonstrate the rest of the git bisect process I took.
 
 One of the great things about NixOS is how easy it is to go from a NixOS
-configuration to a qemu VM image. So far, these VMs have been managed via the
-usual `nixos-rebuild switch --flake '.#k8s-worker'` mechanism, but it seemed
-like it would be fewer steps to start with a fresh VM each time for the bisect.
+configuration to a qemu VM image. As I mentioned, these VMs have thus far been
+managed via the usual `nixos-rebuild switch --flake '.#k8s-worker'` mechanism,
+but it seemed like it would be fewer steps to start with a fresh VM each time
+for the bisect.
 
 I started by thinning down the [nixos configuration](https://github.com/euank/nixos-linux-bisect-post/blob/465af387e8035042267d8fd0a5f2da2f043aff4f/repro/configuration.nix) a bit, and then [made that into a qemu image](https://github.com/euank/nixos-linux-bisect-post/commit/e743ac8c9acefe667906f8e65088b3a5b61a3c54):
 
@@ -80,14 +109,15 @@ qemuImage = (import "${nixpkgs}/nixos/lib/make-disk-image.nix") {
 ```
 <small>[source](https://github.com/euank/nixos-linux-bisect-post/blob/e743ac8c9acefe667906f8e65088b3a5b61a3c54/flake.nix#L31-L48)</small>
 
-Nice and simple!
+Nice, probably easier than the more common `debootstrap` flow! (Though, as an aside, I have seen some clean looking [debootstrap setups](https://github.com/google/syzkaller/blob/dc9e52595336dbe32f9a20f5da9f09cb8172cd21/tools/create-image.sh#L156-L192). It doesn't look nearly as reproducible though 😉).
 
-That let me run `nix build '.#qemuImage'`, and after a matter of minutes, get a
+With that, we can run `nix build '.#qemuImage'`, and after a matter of minutes, get a
 `./result/nixos.qcow2` for testing.
 
-Unfortunately, I hit a small bump here: running the VM locally didn't reproduce
-the issue, even after downgrading qemu and libvirt to the same versions as my
-server. Ah, well, no matter. It still reproduced on the remote host.
+Unfortunately, I hit another small bump here: running the VM locally didn't
+reproduce the issue, even after downgrading qemu and libvirt to the same
+versions as my server. It probably doesn't quite qualify, but the fact that it wouldn't repro locally did feel mildly [heisenbug](https://en.wikipedia.org/wiki/Heisenbug)-ish.
+Ah, well, no matter. It still reproed on the remote host just fine.
 
 Undeterred, I plowed forward to the final piece needed to start the bisect:
 using a specific kernel commit for the NixOS configuration.
@@ -159,7 +189,11 @@ scp ./result/nixos.qcow2 $serverHost:
 # Update the vm
 ssh $serverHost sudo virsh destroy repro-vm || true
 
-ssh $serverHost sudo sh -c "'qemu-img convert ./nixos.qcow2 -O raw /tank/virts/disks/repro-vm.raw && qemu-img resize -f raw /tank/virts/disks/repro-vm.raw 10G && rm -f ./nixos.qcow2'" || exit 125
+ssh $serverHost sudo sh -c '
+  qemu-img convert ./nixos.qcow2 -O raw /tank/virts/disks/repro-vm.raw && \
+  qemu-img resize -f raw /tank/virts/disks/repro-vm.raw 10G && \
+  rm -f ./nixos.qcow2
+' || exit 125
 
 ssh $serverHost sudo virsh start repro-vm
 
@@ -181,26 +215,9 @@ for i in $(seq 1 15); do
 done
 ```
 
-This also needed some [small modifications](https://github.com/euank/nixos-linux-bisect-post/commit/2d85eada573ebf9fea34820162cbaf31535c69b3) to `repro/configuration.nix`:
-
-```nix
-# repro/configuration.nix
-let
-  commit = builtins.readFile ./commit;
-  sha = builtins.readFile ./sha;
-  kversion = builtins.readFile ./version;
-
-  kernel = pkgs.linuxPackages_custom {
-    src = builtins.fetchTarball {
-      url = "https://github.com/euank/linux/archive/${commit}.tar.gz";
-      sha256 = sha;
-    };
-    version = kversion;
-    configfile = ./kconfig;
-  };
-# ...
-```
-<small>[source](https://github.com/euank/nixos-linux-bisect-post/blob/2d85eada573ebf9fea34820162cbaf31535c69b3/repro/configuration.nix#L8-L19)</small>
+This also needed some [small modifications](https://github.com/euank/nixos-linux-bisect-post/commit/2d85eada573ebf9fea34820162cbaf31535c69b3)
+to `repro/configuration.nix` in order to read metadata about the linux commit
+currently being tested:
 
 From here, it was a simple matter of:
 
@@ -223,7 +240,12 @@ Let me tell you, the feeling of waking up and seeing the that a bisect you left 
 
 The next morning, it had my bad commit, and it looked very believable:
 
-```
+<details>
+
+<summary>Commit message &amp; log</summary>
+
+
+<pre>
 8d622d21d24803408b256d96463eac4574dcf067 is the first bad commit
 commit 8d622d21d24803408b256d96463eac4574dcf067
 Date:   Tue Apr 13 01:19:16 2021 -0400
@@ -251,26 +273,71 @@ Date:   Tue Apr 13 01:19:16 2021 -0400
  drivers/virtio/virtio_ring.c | 26 +++++++++++++++++++++++++-
  1 file changed, 25 insertions(+), 1 deletion(-)
 bisect found first bad commit
-```
+
+$ git bisect log
+git bisect start
+# bad: [3e732ebf7316ac83e8562db7e64cc68aec390a18] Merge tag 'for_linus' of git://git.kernel.org/pub/scm/linux/kernel/git/mst/vhost
+git bisect bad 3e732ebf7316ac83e8562db7e64cc68aec390a18
+# good: [2c85ebc57b3e1817b6ce1a6b703928e113a90442] Linux 5.10
+git bisect good 2c85ebc57b3e1817b6ce1a6b703928e113a90442
+# bad: [e083bbd6040f4efa5c13633fb4e460b919d69dae] Merge tag 'arm-dt-5.14' of git://git.kernel.org/pub/scm/linux/kernel/git/soc/soc
+git bisect bad e083bbd6040f4efa5c13633fb4e460b919d69dae
+# good: [5106efe6ed985d8d0b5dc5230a2ab2212810ee03] Merge git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next
+git bisect good 5106efe6ed985d8d0b5dc5230a2ab2212810ee03
+# good: [9ebd8118162b220d616d7e29b505dd64a90f75b6] Merge tag 'platform-drivers-x86-v5.13-2' of git://git.kernel.org/pub/scm/linux/kernel/git/pdx86/platform-drivers-x86
+git bisect good 9ebd8118162b220d616d7e29b505dd64a90f75b6
+# good: [9ce85ef2cb5c738754837a6937e120694cde33c9] io_uring: remove dead non-zero 'poll' check
+git bisect good 9ce85ef2cb5c738754837a6937e120694cde33c9
+# good: [a70bb580bfeaead9f685d4c28f7cd685c905d8c3] Merge tag 'devicetree-for-5.14' of git://git.kernel.org/pub/scm/linux/kernel/git/robh/linux
+git bisect good a70bb580bfeaead9f685d4c28f7cd685c905d8c3
+# good: [a16d8644bad461bb073b92e812080ea6715ddf2b] Merge tag 'staging-5.14-rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging
+git bisect good a16d8644bad461bb073b92e812080ea6715ddf2b
+# good: [8c1bfd746030a14435c9b60d08a81af61332089b] Merge tag 'pwm/for-5.14-rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/thierry.reding/linux-pwm
+git bisect good 8c1bfd746030a14435c9b60d08a81af61332089b
+# good: [73d1774e0f6e3b6bee637b38ea0f2e722423f9fa] Merge tag 'v5.14-rockchip-dts64-1' of git://git.kernel.org/pub/scm/linux/kernel/git/mmind/linux-rockchip into arm/dt
+git bisect good 73d1774e0f6e3b6bee637b38ea0f2e722423f9fa
+# good: [1459718d7d79013a4814275c466e0b32da6a26bc] Merge tag 'powerpc-5.14-2' of git://git.kernel.org/pub/scm/linux/kernel/git/powerpc/linux
+git bisect good 1459718d7d79013a4814275c466e0b32da6a26bc
+# bad: [3de62951a5bee5dce5f4ffab8b7323ca9d3c7e1c] Merge tag 'sound-fix-5.14-rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound
+git bisect bad 3de62951a5bee5dce5f4ffab8b7323ca9d3c7e1c
+# bad: [db7b337709a15d33cc5e901d2ee35d3bb3e42b2f] virtio-mem: prioritize unplug from ZONE_MOVABLE in Big Block Mode
+git bisect bad db7b337709a15d33cc5e901d2ee35d3bb3e42b2f
+# good: [6f5312f801836e6af9bcbb0bdb44dc423e129206] vdpa/mlx5: Add support for running with virtio_vdpa
+git bisect good 6f5312f801836e6af9bcbb0bdb44dc423e129206
+# bad: [5bc72234f7c65830e60806dbb73ae76bacd8a061] virtio: use err label in __vring_new_virtqueue()
+git bisect bad 5bc72234f7c65830e60806dbb73ae76bacd8a061
+# bad: [e3aadf2e1614174dc81d52cbb9dabb77913b11c6] vdpa/mlx5: Clear vq ready indication upon device reset
+git bisect bad e3aadf2e1614174dc81d52cbb9dabb77913b11c6
+# bad: [8d622d21d24803408b256d96463eac4574dcf067] virtio: fix up virtio_disable_cb
+git bisect bad 8d622d21d24803408b256d96463eac4574dcf067
+# good: [22bc63c58e876cc359d0b1566dee3db8ecc16722] virtio_net: move txq wakeups under tx q lock
+git bisect good 22bc63c58e876cc359d0b1566dee3db8ecc16722
+# first bad commit: [8d622d21d24803408b256d96463eac4574dcf067] virtio: fix up virtio_disable_cb
+</pre>
+
+</details>
 
 A [virtio commit](https://github.com/torvalds/linux/commit/8d622d21d24803408b256d96463eac4574dcf067)? Yup, that definitely sounds believable for network hangs in a VM using the `virtio_net` driver.
 
 This was great, but it still didn't explain why I could only repro it on
-that one machine, nor why no one had noticed and fixed it yet. After some
-experimentation, I found that running a VM with the above virtio commit on a
-different host using a similarly old 4.12 kernel was what it took to repro
-it.... meaning it was time for (you guessed it) *another git bisect*, this time
-of the host kernel!
+that one machine, nor why no one had noticed and fixed it yet. My first guess
+was that the host kernel version mattered (after all, the virtio drivers have a
+host component, the vhost drivers, too), which seemed easy enough to test.
+
+Sure enough, running a VM with the above virtio commit on a different host
+using a similarly old 4.12 kernel finally reproed it on a second machine....
+meaning it was time for (you guessed it) *another git bisect*, this time of the
+host kernel!
 
 Now, initially I was thrilled at the prospect. The last bisect was easy thanks
 to the power of NixOS! Unfortunately, this enthusiasm didn't last long.
 
 ### bisect 2: no VMs, old tools, and eventually no NixOS
 
-Things went downhill rapidly. First, just using the 4.12.5 kernel in
-NixOS's `pkgs.linuxPackages_custom` didn't work this time. It turns out the
-first bisect went so smoothly in part because I was only working with recent
-kernel versions, but going 4+ years back in time had some bumps.
+This time, problems immediately reared their heads. First, just using the
+4.12.5 kernel in NixOS's `pkgs.linuxPackages_custom` didn't work. It turns out
+the first bisect went so smoothly in part because I was only working with
+recent kernel versions, but going 4+ years back in time had some bumps.
 
 ```
 $ nixos-rebuild build --flake '.#repro-host'
@@ -298,35 +365,23 @@ Unsupported relocation type: R_X86_64_PLT32 (4)
 make[4]: *** [../arch/x86/boot/compressed/Makefile:118: arch/x86/boot/compressed/vmlinux.relocs] Error 1
 ```
 
-This one took _much_ longer to fail. Anyway, a short google later let me
-know that I want an [older binutils](https://unix.stackexchange.com/questions/513921/how-to-get-around-r-x86-64-plt32-error-when-bisecting-the-linux-kernel)
-to fix this. I decided to downgrade NixOS as a whole to an older version to
-hopefully fix any other such issues. The NixOS versions that were around with
-the 4.12 kernel all predate flakes, so I switched to the old
-`/etc/nixos/configuration.nix` + `nix-channel` method of managing things. I didn't
-take as good notes here, but suffice it to say, I still ran into more issues.
-It was also very noticeable that nixpkgs didn't have a good mechanism for
-incremental compilation (having to rebuild the kernel from scratch for each
-change of practically anything), and that the normal advice of using ccache [wouldn't work](https://github.com/NixOS/nixpkgs/issues/153343).
+This one took _much_ longer to fail. A short google later let me
+know that I needed an [older binutils](https://unix.stackexchange.com/questions/513921/how-to-get-around-r-x86-64-plt32-error-when-bisecting-the-linux-kernel).
 
-In pursuit of incremental compilation, I went on a short adventure to try and
-take a precompiled vmlinuz, and from that produce a valid initrd and boot NixOS
-that way. Unfortunately, I couldn't figure out an easy way to slot in a
-precompiled kernel and modules and get a working initrd. I tried creating an
-[EFISTUB kernel and booting from that directly](https://firasuke.github.io/DOTSLASHLINUX/post/booting-the-linux-kernel-without-an-initrd-initramfs/), but the NixOS stage-1 seemed
-rather important and difficult to emulate properly without an initrd.
+I floundered around, doing everything from downgrading to NixOS 17.09, to running into bugs in `linuxPackages_custom` that had been fixed several years ago.
+Eventually, the slow iteration speed of `linuxPackages_custom` got to me. It
+has no support for incremental compilation (nor [`ccache` support](https://github.com/NixOS/nixpkgs/issues/153343). Surely there's a
+better way!
 
-I knew that on most distros, including Ubuntu, it's possible to [ditch the initrd](https://wiki.ubuntu.com/ImprovingBootPerformance), and at this point I
-was tired of hopping between ancient NixOS channels and waiting for a full
-non-incremental kernel build for each change, so I installed Ubuntu 18.04 (a
-version old enough I thought it would build the 4.12 kernel with no complaint),
-and tried to bisect from there.
+I knew that on most distros, including Ubuntu, it's possible to just build a
+kernel and use it, with full incremental compilation. I installed Ubuntu 18.04
+(a version old enough I thought it would build the 4.12 kernel with no
+complaint), and tried to bisect from there.
 
 This change from NixOS to Ubuntu instantly made the process less frustrating.
 Running `make && sudo make modules_install && sudo make install` in a checkout
 of the `4.12.x` kernel _just worked_, giving me incremental compilation and a
-boot loader entry. I didn't even have to disable the initrd since `make
-install` built it for me, correctly and without any extra pain.
+boot loader entry. I didn't even have to disable the initrd since `make install` built it for me, correctly and without any extra pain.
 
 Switching to Ubuntu let me fairly quickly find [the commit](https://github.com/torvalds/linux/commit/8d65843c44269c21e95c98090d9bb4848d473853)
 which fixed the bug for both older and newer guest kernel versions when applied
@@ -337,12 +392,11 @@ This gave me enough information that I finally felt I could [report the issue up
 I think this is a satisfying conclusion to this investigation. It turns out
 that the 4.12 kernel has a bug in the `vhost` side of `virtio-ring`, and a
 recent optimization to the guest side of `virtio-ring` fairly reliably triggers
-that bug in certain circumstances. This serves as a good forcing function to
-make me finally replace that last Gentoo machine with NixOS, and it also let me
-learn a bit along the way.
+that bug. This serves as a good forcing function to make me finally replace
+that last Gentoo machine with NixOS, and it also let me learn a bit along the
+way.
 
 Speaking of, let's talk about a few learnings and and notes.
-
 
 ### Learnings and Notes
 
@@ -356,8 +410,8 @@ config already), which massively increased the iteration speed. NixOS starts
 with a much thicker kernel config, and has a number of checks in its initrd
 build process and so on which require a rather large baseline of modules.
 
-Another difference, touched on above, is that NixOS makes it more difficult to
-use a standalone kernel.
+Another difference is that NixOS makes it more difficult to use a standalone
+kernel.
 
 When possible, it's always great to perform a git bisect by effectively doing:
 
@@ -368,8 +422,8 @@ When possible, it's always great to perform a git bisect by effectively doing:
 
 The iteration speed of the above setup is great, but NixOS's desire to also own
 the kernel build process, its desire to use an initrd that matches the kernel,
-and the general difficulty of building such an initrd all conspire together to
-make this difficult.
+and the general difficulty of building such an initrd, all conspire together to
+make this more difficult on NixOS than the average distro.
 
 Next time I need to do a kernel bisect, I expect I'll spend a little more time
 upfront trying to reproduce my issue in a setup like the above, where my rootfs
@@ -405,7 +459,7 @@ for the bisect flow I want. I'm personally a fan of NixOS, and it was
 disappointing that Ubuntu gave me a better experience for bisecting an old
 linux kernel.
 
-Let's talk about some of the differences that made Ubuntu's flow better for this.
+Let's talk about some of the differences that made Ubuntu work well here.
 
 ##### `/sbin/installkernel`
 
@@ -436,7 +490,7 @@ It doesn't seem to me like there's any fundamental reason that prebuilt
 binaries can't be plugged in as inputs here, and it's simply a matter of
 someone wiring it up.
 
-On Ubuntu, this is of course trivial: just `make install` them into place.
+On Ubuntu, this is a fairly straightforward process.
 
 ##### Booting with no initrd
 
@@ -461,7 +515,3 @@ It's a testament to the quality of the linux repository that I had zero skips in
 
 Oh, also, update your machines frequently. Updating that VM host any time in
 the past 3 years would have saved me hours of sleep.
-
-----
-
-Thanks for reading :)
