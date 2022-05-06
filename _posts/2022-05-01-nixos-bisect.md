@@ -370,7 +370,7 @@ know that I needed an [older binutils](https://unix.stackexchange.com/questions/
 
 I floundered around, doing everything from downgrading to NixOS 17.09, to running into bugs in `linuxPackages_custom` that had been fixed several years ago.
 Eventually, the slow iteration speed of `linuxPackages_custom` got to me. It
-has no support for incremental compilation (nor [`ccache` support](https://github.com/NixOS/nixpkgs/issues/153343). Surely there's a
+has no support for incremental compilation (nor [`ccache` support](https://github.com/NixOS/nixpkgs/issues/153343)). Surely there's a
 better way!
 
 I knew that on most distros, including Ubuntu, it's possible to just build a
