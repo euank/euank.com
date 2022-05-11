@@ -30,21 +30,16 @@ Yeah...
 
 Normally, this cluster hums along happily, running various personal projects
 and sites (including this one!). The VMs themselves are fairly up to date, and
-updates have mostly been smooth, with the occasional exception. Speaking of,
-let's talk about the update that leads to the main conflict in this story.
+updates have mostly been smooth. Speaking of, let's talk about the update that
+leads to the main conflict in this story.
 
 ### A Bumpy Update
-
-The initial goal of the update was to switch the pod network from the flannel
-vxlan backend to the [`wireguard backend`](https://github.com/flannel-io/flannel/pull/1230). The actual reasons
-for this update don't end up mattering for this story.
 
 Since these VMs are all running NixOS, my rather naive process for updating them amounts to editing a [`nix flake`](https://nixos.wiki/wiki/Flakes) repo, and doing `ssh k8s-worker-$num "cd config && git pull && sudo nixos-rebuild --flake '.#k8s-worker-$num' switch"`. This isn't ideal, but it's worked so far!
 
 In addition to the pod network changes mentioned above, I did a `nix flake
 update` at some point since the last update. These VM's configurations are
-small enough that, even tracking `nixos-unstable`, blindly updating isn't
-scary.
+small enough that, even tracking `nixos-unstable`, updating isn't scary.
 
 So, what went wrong? Well, at first, nothing! The VMs all updated, my network
 connectivity metric showed inter-pod communication was functioning, and the
@@ -52,7 +47,10 @@ stuff I hosted was all running with no complaints.
 
 <i>3 hours later</i>
 
-Oh no one of the nodes is unhealthy! Oh no, it's the single ingress node, so everything's offline (aside: normally there're multiple, but I went down to just one for the update. Not for any good reason either)!
+Oh no one of the nodes is unhealthy! Oh no, it's the single ingress node, so everything's offline.
+Normally there would be multiple ingress nodes, but part of the update includes
+shuffling around DNS entries, and I hadn't turned the "number of ingresses"
+knob back up yet (oops)!
 
 Fine, if I can't ssh in, hard-reset: `sudo virsh reset <node-name>`. Phew, at least everything came back up... surely that was just an errant kernel panic and I'll worry about it later.
 
@@ -60,9 +58,9 @@ Fine, if I can't ssh in, hard-reset: `sudo virsh reset <node-name>`. Phew, at le
 
 Oh no one of the nodes is unhealthy! Oh no, it's the single ingress node!
 
-I'm sure you can see the pattern. What ensued was a frustrating debugging
-session where the network failed seemingly with no exact pattern, and the
-longer I tried to observe the broken state, the longer my stuff was offline.
+What ensued was a frustrating debugging session where the network failed
+seemingly with no exact pattern, and the longer I tried to observe the broken
+state, the longer my stuff was offline.
 
 For the sake of brevity, I'll skip to the answer: it turns out the `nix flake
 update` above switched the default kernel version (from 5.10 to 5.15), and
@@ -109,14 +107,14 @@ qemuImage = (import "${nixpkgs}/nixos/lib/make-disk-image.nix") {
 ```
 <small>[source](https://github.com/euank/nixos-linux-bisect-post/blob/e743ac8c9acefe667906f8e65088b3a5b61a3c54/flake.nix#L31-L48)</small>
 
-Nice, probably easier than the more common `debootstrap` flow! (Though, as an aside, I have seen some clean looking [debootstrap setups](https://github.com/google/syzkaller/blob/dc9e52595336dbe32f9a20f5da9f09cb8172cd21/tools/create-image.sh#L156-L192). It doesn't look nearly as reproducible though 😉).
+Nice, probably easier than the more common `debootstrap` flow! (Though I have seen some clean looking [debootstrap setups](https://github.com/google/syzkaller/blob/dc9e52595336dbe32f9a20f5da9f09cb8172cd21/tools/create-image.sh#L156-L192). It doesn't look nearly as reproducible though 😉.)
 
 With that, we can run `nix build '.#qemuImage'`, and after a matter of minutes, get a
 `./result/nixos.qcow2` for testing.
 
 Unfortunately, I hit another small bump here: running the VM locally didn't
 reproduce the issue, even after downgrading qemu and libvirt to the same
-versions as my server. It probably doesn't quite qualify, but the fact that it wouldn't repro locally did feel mildly [heisenbug](https://en.wikipedia.org/wiki/Heisenbug)-ish.
+versions as my server. Was I dealing with a [heisenbug](https://en.wikipedia.org/wiki/Heisenbug)?
 Ah, well, no matter. It still reproed on the remote host just fine.
 
 Undeterred, I plowed forward to the final piece needed to start the bisect:
@@ -217,7 +215,7 @@ done
 
 This also needed some [small modifications](https://github.com/euank/nixos-linux-bisect-post/commit/2d85eada573ebf9fea34820162cbaf31535c69b3)
 to `repro/configuration.nix` in order to read metadata about the linux commit
-currently being tested:
+currently being tested.
 
 From here, it was a simple matter of:
 
@@ -237,8 +235,6 @@ and going to sleep.
 </figure>
 
 Let me tell you, the feeling of waking up and seeing the that a bisect you left running overnight not only completed, but seems to have found the right answer... it's great.
-
-The next morning, it had my bad commit, and it looked very believable:
 
 <details>
 
@@ -320,9 +316,9 @@ git bisect good 22bc63c58e876cc359d0b1566dee3db8ecc16722
 A [virtio commit](https://github.com/torvalds/linux/commit/8d622d21d24803408b256d96463eac4574dcf067)? Yup, that definitely sounds believable for network hangs in a VM using the `virtio_net` driver.
 
 This was great, but it still didn't explain why I could only repro it on
-that one machine, nor why no one had noticed and fixed it yet. My first guess
-was that the host kernel version mattered (after all, the virtio drivers have a
-host component, the vhost drivers, too), which seemed easy enough to test.
+that one machine, nor why no one had noticed and fixed it yet. The virtio
+drivers do have a host component too (the vhost drivers), so perhaps the host
+kernel version matters too?
 
 Sure enough, running a VM with the above virtio commit on a different host
 using a similarly old 4.12 kernel finally reproed it on a second machine....
@@ -373,10 +369,10 @@ Eventually, the slow iteration speed of `linuxPackages_custom` got to me. It
 has no support for incremental compilation (nor [`ccache` support](https://github.com/NixOS/nixpkgs/issues/153343)). Surely there's a
 better way!
 
-I knew that on most distros, including Ubuntu, it's possible to just build a
-kernel and use it, with full incremental compilation. I installed Ubuntu 18.04
-(a version old enough I thought it would build the 4.12 kernel with no
-complaint), and tried to bisect from there.
+On many other distros, including Ubuntu, it's possible to just build a kernel
+and use it, with incremental compilation working as one might expect. I
+installed Ubuntu 18.04 (a version old enough I thought it would build the 4.12
+kernel with no complaint), and tried to bisect from there.
 
 This change from NixOS to Ubuntu instantly made the process less frustrating.
 Running `make && sudo make modules_install && sudo make install` in a checkout
@@ -396,24 +392,22 @@ that bug. This serves as a good forcing function to make me finally replace
 that last Gentoo machine with NixOS, and it also let me learn a bit along the
 way.
 
-Speaking of, let's talk about a few learnings and and notes.
+Speaking of, let's talk about a few learnings and notes.
 
 ### Learnings and Notes
 
 #### NixOS might be the wrong tool for kernel bisects
 
-I didn't mention it above, but I've done kernel git bisects in the past too. In
-the past, my bisects have been considerably easier for a couple reasons. First,
-I've typically trimmed down the kernel config significantly more (admittedly,
-most of my previous bisects were on Gentoo, where I had a hand-crafted minimal
-config already), which massively increased the iteration speed. NixOS starts
-with a much thicker kernel config, and has a number of checks in its initrd
-build process and so on which require a rather large baseline of modules.
+<!-- rewrite this paragraph as a comparison between bisecting on gentoo and on
+nix; the opening starts a little too broad for the content as it is now -->
 
-Another difference is that NixOS makes it more difficult to use a standalone
-kernel.
+My previous `git bisect` experience has mostly been on Gentoo, where I had a
+hand-crafted minimal kernel config, and was able to boot an EFIStub kernel
+directly with no initrd. NixOS, on the other hand, starts with a much thicker
+kernel config, has numerous checks for various kernel modules, and seems to
+require an initrd.
 
-When possible, it's always great to perform a git bisect by effectively doing:
+The ability to boot the kernel without an initrd enables a much more effective `git bisect flow` of just:
 
 ```
 ~/linux $ make
@@ -426,9 +420,9 @@ and the general difficulty of building such an initrd, all conspire together to
 make this more difficult on NixOS than the average distro.
 
 Next time I need to do a kernel bisect, I expect I'll spend a little more time
-upfront trying to reproduce my issue in a setup like the above, where my rootfs
-is a thin buildroot, my kernel has a minimal config, and the vmlinuz binary is
-passed from the host filesystem directly.
+upfront trying to reproduce my issue in a setup where my rootfs is a thin
+buildroot, my kernel has a minimal config, and the vmlinuz binary is passed
+from the host filesystem directly.
 
 That said, the tradeoffs aren't too bad. It doesn't actually matter that much
 whether a `git bisect run` takes 3 hours or 12 hours if you'll be AFK anyway,
@@ -436,14 +430,11 @@ and I had fun setting up the first bisect described above.
 
 #### Some kernel debugging notes
 
-Actual kernel debugging tips are largely absent from the above post since I
-focused on the bisecting part, but in reality, this investigation also included
-staring at gdb backtraces and trying to divine information from `trace-cmd`
-output.
+This post focused on the kernel bisecting process, but my actual investigation
+also included staring at gdb backtraces and trying to divine information from
+`trace-cmd` output.
 
-This was largely from trying to understand the bug from just bisect 1 (which
-ended up being unfruitful, the `vhost` side of things is where the interesting
-info was). Still, I want to mention the following:
+I didn't have a better place to include these links, but they were all great and deserve a shoutout :)
 
 1. [`trace-cmd`](https://man7.org/linux/man-pages/man1/trace-cmd.1.html) is awesome.
     Check out `sudo trace-cmd record -p function_graph -g "vring_interrupt" -g "virtnet_poll" -n "printk"` + `trace-cmd report` if you want to see some fun call graphs
@@ -454,18 +445,14 @@ I'll also give a shoutout to Red Hat's [virtio-ring](https://www.redhat.com/en/b
 
 #### Possible NixOS Improvements
 
-I'd like to use this section to speculate about ways NixOS could be improved
-for the bisect flow I want. I'm personally a fan of NixOS, and it was
-disappointing that Ubuntu gave me a better experience for bisecting an old
-linux kernel.
-
-Let's talk about some of the differences that made Ubuntu work well here.
+Let's talk about some of the differences between bisecting on Ubuntu and NixOS,
+keeping an eye out for possible NixOS improvements.
 
 ##### `/sbin/installkernel`
 
 I mentioned that `make install` for Ubuntu "just worked". How does that work? Surely the Linux `Makefile` doesn't know how to run Ubuntu's `update-grub` or such, right? Well, it turns out the linux `Makefile` calls a custom install script at [`/sbin/installkernel`](https://github.com/torvalds/linux/blob/5bfc75d92efd494db37f5c4c173d3639d4772966/arch/x86/boot/install.sh#L37) if present, and Ubuntu [includes such a script](https://manpages.ubuntu.com/manpages/bionic/man8/installkernel.8.html).
 
-It's hard to imagine how NixOS could do the same thing, after all a NixOS boot
+It's hard to imagine how NixOS could do the same thing; after all, a NixOS boot
 entry specifies the entire system configuration, and it doesn't seem feasible
 for NixOS to rebuild that configuration itself. It's possible to build a NixOS
 system configuration using a flake on another machine, or to make impure
@@ -475,13 +462,13 @@ Providing a mechanism like this in NixOS would probably require having some
 sort of "impure" boot entry, where a kernel and initrd are used which don't
 "match" the NixOS configuration they boot.
 
-All this said, I think there's still value in providing such a mechanism if
-it's feasible.
+I don't think this mechanism should be a commonly used thing, but I think it
+would be neat to have for cases like this one.
 
 ##### Externally built kernel
 
 Currently, NixOS provides `linuxPackages_custom` to build a custom kernel
-version. I couldn't find any equivilant mechanism to point
+version. I couldn't find any equivalent mechanism to point
 `boot.kernelpackages` at a pre-built kernel and its modules. This mechanism
 would have made incremental compilation much easier, especially when adding
 printk debugging statements and rebuilding.
@@ -489,8 +476,6 @@ printk debugging statements and rebuilding.
 It doesn't seem to me like there's any fundamental reason that prebuilt
 binaries can't be plugged in as inputs here, and it's simply a matter of
 someone wiring it up.
-
-On Ubuntu, this is a fairly straightforward process.
 
 ##### Booting with no initrd
 
