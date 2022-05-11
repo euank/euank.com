@@ -6,7 +6,8 @@ serve:
 	bundle exec jekyll serve --drafts -l -H 0.0.0.0
 
 docker-image:
-	docker build -t "euank/euankcom:$(shell git rev-parse --short HEAD)" .
+	nix build '.#'
+	docker load -i ./result
 
 sync-examples:
 	cd blog/examples && aws s3 sync . s3://euank-com-examples

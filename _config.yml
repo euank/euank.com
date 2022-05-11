@@ -5,8 +5,11 @@ highlighter: rouge
 exclude:
 - vendor
 - Makefile
-- Dockerfile
+- flake.nix
+- flake.lock
+- image.nix
 - .gitignore
 - .dockerignore
 - Gemfile
 - Gemfile.lock
+- /rootfs
