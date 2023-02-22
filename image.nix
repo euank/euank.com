@@ -33,17 +33,24 @@ let
       rsync -av . $out
     '';
   };
+  rootEnv = buildEnv {
+    name = "root";
+    paths = [
+      rootfs
+      staticSiteFiles
+      coreutils
+      bashInteractive
+      nixpkgs.legacyPackages.x86_64-linux.nginx
+    ];
+    postBuild = ''
+      mkdir -p $out/var/log/nginx
+    '';
+  };
 in
 dockerTools.buildImage {
   name = "171940471906.dkr.ecr.us-west-2.amazonaws.com/euank-com";
   config = {
     Cmd = [ "/bin/nginx" "-c" "/etc/nginx/nginx.conf" "-g" "daemon off;" ];
   };
-  contents = [
-    rootfs
-    nixpkgs.legacyPackages.x86_64-linux.nginx
-    staticSiteFiles
-    coreutils
-    bashInteractive
-  ];
+  copyToRoot = [ rootEnv ];
 }
