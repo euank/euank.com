@@ -33,9 +33,10 @@ I'm giving subbing them in English a go. We'll see how far I get. Currently, the
 
 * [01 - AM8:30, Test Day](01.ass)
 * [02 - An invisible man, but he wears clothes while robbing](02.ass)
+* [03 - A too-loud voice, and it all comes to nothing](03.ass)
 
 ### Using these files
 
 I recommend using [yt-dlp](https://github.com/yt-dlp/yt-dlp) to download the video locally in whatever format you prefer, and then opening the subtitle file with them. If you name the subtitle file to the same thing as the video file (like "01.webm" and "01.ass"), most media players will automatically load the subtitle file.
 
-I personally am using the mp4 format I get from `yt-dlp -f mp4` in association with my .ass files, and I always verify it all renders correctly in [mpv](https://mpv.io/) using that combination.
+I personally am using the mp4 format I get from `yt-dlp -f mp4` in association with my .ass files, and I generally verify it all renders correctly in [mpv](https://mpv.io/) using that combination.
