@@ -6,22 +6,23 @@ ScriptType: v4.00+
 WrapStyle: 0
 ScaledBorderAndShadow: yes
 YCbCr Matrix: TV.709
-PlayResX: 1920
-PlayResY: 1080
+PlayResX: 1280
+PlayResY: 720
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Para Title,DejaVu Sans,80,&H0000C6FF,&H000000FF,&H00000000,&H00000000,-1,0,0,0,105,100,0,0,1,2,2,2,10,10,10,1
-Style: Default,Arial,48,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,2,2,2,10,10,10,1
-Style: Paradef,Libre Franklin,80,&H000073FF,&H00008AFF,&H00FFFFFF,&H00FFFFFF,-1,0,0,0,100,100,0,0,1,6.2,0,2,10,10,150,1
-Style: Parablue,Arial,48,&H00FFE700,&H000000FF,&H00FFFFFF,&H00000000,0,0,0,0,100,100,0,0,1,6.2,2,2,10,10,150,1
-Style: Parapurp,Arial,48,&H00E8008B,&H000000FF,&H00FFFFFF,&H00000000,0,0,0,0,100,100,0,0,1,6.2,2,2,10,10,150,1
+Style: Para Title,DejaVu Sans,53,&H0000C6FF,&H000000FF,&H00000000,&H00000000,-1,0,0,0,105,100,0,0,1,1.33333,1.33333,2,7,7,7,1
+Style: Default,Arial,32,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,1.33333,1.33333,2,7,7,7,1
+Style: Paradef,Libre Franklin,60,&H00427CFF,&H00008AFF,&H00FFFFFF,&H00FFFFFF,-1,0,0,0,100,100,0,0,1,5,0,2,10,10,90,1
+Style: Parablue,Libre Franklin,60,&H00C5CC07,&H000000FF,&H00FFFFFF,&H00000000,0,0,0,0,100,100,0,0,1,4.2,2,2,10,10,90,1
+Style: Parapurp,Libre Franklin,60,&H00D36ED0,&H000000FF,&H00FFFFFF,&H00000000,0,0,0,0,100,100,0,0,1,5,2,2,10,10,90,1
+Style: Paradef - big,Libre Franklin,80,&H00427CFF,&H00008AFF,&H00FFFFFF,&H00FFFFFF,-1,0,0,0,100,100,0,0,1,5,0,2,10,10,110,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
-Dialogue: 0,0:00:00.00,0:00:04.02,Para Title,,0,0,0,,{\fad(2200,0)}Private High School "ParaNormal"\NAM8:30  Test day
-Dialogue: 0,0:00:04.02,0:00:06.68,Paradef,,0,0,0,,Hey, Hikaru
-Dialogue: 0,0:00:06.68,0:00:07.70,Parablue,,0,0,0,,What
+Dialogue: 0,0:00:00.00,0:00:04.02,Para Title,,0,0,0,,{\fad(2200,0)}Private High School "Para-normal"\NAM8:30  Test day
+Dialogue: 0,0:00:04.02,0:00:06.48,Paradef,,0,0,0,,Hey, Hikaru
+Dialogue: 0,0:00:06.48,0:00:07.70,Parablue,,0,0,0,,What
 Dialogue: 0,0:00:07.70,0:00:09.25,Paradef,,0,0,0,,Uhh
 Dialogue: 0,0:00:09.25,0:00:10.47,Paradef,,0,0,0,,That uhhh
 Dialogue: 0,0:00:10.47,0:00:12.01,Paradef,,0,0,0,,What year was that battle?
@@ -60,14 +61,14 @@ Dialogue: 0,0:01:29.96,0:01:33.33,Paradef,,0,0,0,,Ummm
 Dialogue: 0,0:01:33.33,0:01:35.07,Paradef,,0,0,0,,The second and fourth thursday
 Dialogue: 0,0:01:35.63,0:01:36.77,Parablue,,0,0,0,,Uh?
 Dialogue: 0,0:01:38.67,0:01:39.16,Parablue,,0,0,0,,what was that?
-Dialogue: 0,0:01:39.16,0:01:41.00,Paradef,,0,0,0,,That happened
+Dialogue: 0,0:01:39.16,0:01:41.00,Paradef,,0,0,0,,I've been ruined
 Dialogue: 0,0:01:41.00,0:01:42.10,Parablue,,0,0,0,,The mongols invaded twice a month?
 Dialogue: 0,0:01:42.10,0:01:47.60,Paradef,,0,0,0,,Who brought a "Recycling days chart", to class?
 Dialogue: 0,0:01:47.60,0:01:48.52,Parablue,,0,0,0,,huh
 Dialogue: 0,0:01:48.52,0:01:50.07,Paradef,,0,0,0,,Don't screw with me~...
 Dialogue: 0,0:01:50.07,0:01:51.52,Parablue,,0,0,0,,No, what are you talking about?
 Dialogue: 0,0:01:51.52,0:01:53.38,Paradef,,0,0,0,,So, my body...
-Dialogue: 0,0:01:53.38,0:01:55.15,Paradef,,0,0,0,,it "Aborbs" right
+Dialogue: 0,0:01:53.38,0:01:55.15,Paradef - big,,0,0,0,,it "Aborbs" right
 Dialogue: 0,0:01:55.15,0:01:56.19,Parablue,,0,0,0,,Ah
 Dialogue: 0,0:01:56.19,0:01:58.24,Parablue,,0,0,0,,Your black hole power huh
 Dialogue: 0,0:01:58.24,0:02:02.05,Paradef,,0,0,0,,Right, my power's black hole, so..
@@ -115,6 +116,6 @@ Dialogue: 0,0:03:35.65,0:03:37.90,Paradef,,0,0,0,,Wait, it's tough (not to laugh
 Dialogue: 0,0:03:37.90,0:03:39.60,Parablue,,0,0,0,,It's more tough for me
 Dialogue: 0,0:03:39.60,0:03:44.55,Parapurp,,0,0,0,,Sorry, Hikaru, you're a bit radiant, could you turn down the light a bit?
 Dialogue: 0,0:03:44.55,0:03:46.40,Parablue,,0,0,0,,Ahh, sorry
-Dialogue: 0,0:03:46.40,0:03:47.64,Paradef,,0,0,0,,Alex?
+Dialogue: 0,0:03:46.40,0:03:47.64,Paradef,,0,0,0,,Alexa?
 Dialogue: 0,0:03:47.64,0:03:48.98,Parablue,,0,0,0,,Shut up
 Dialogue: 0,0:03:49.64,0:03:51.64,Parablue,,0,0,0,,
