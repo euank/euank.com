@@ -12,11 +12,24 @@
   <body>
     <header>
       <nav>
-        <a href="/">Site Index</a>
+        <a href="/">Home</a>
       </nav>
     </header>
     <div class="post-content">
       {{ content }}
     </div>
+    <script>
+      document.querySelectorAll('.blog-image').forEach(image => {
+        image.addEventListener('click', () => {
+          if (image.requestFullscreen) {
+            image.requestFullscreen();
+          } else if (image.webkitRequestFullScreen) {
+            image.webkitRequestFullScreen();
+          } else if (image.mozRequestFullScreen) {
+            image.mozRequestFullScreen();
+          }
+        });
+      });
+    </script>
   </body>
 </html>
