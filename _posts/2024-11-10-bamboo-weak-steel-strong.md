@@ -1,8 +1,9 @@
 ---
 layout: post
 title: Building a Bamboo Bicycle &mdash; A review of the Bamboo Bicycle Club
-# Alternative title: The Steel is Mightier than the Bamboo &mdash; A Bamboo Bicycle Club Frame Review
 ---
+
+<!-- # Alternative title: The Steel is Mightier than the Bamboo &mdash; A Bamboo Bicycle Club Frame Review -->
 
 # Building a Bamboo Bicycle &mdash; a review of the Bamboo Bicycle Club
 

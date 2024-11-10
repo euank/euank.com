@@ -6,7 +6,7 @@ serve:
 	bundle exec jekyll serve --drafts -l -H 0.0.0.0
 
 docker-image:
-	nix build '.#'
+	nix build -o result '.#'
 	docker load -i ./result
 
 sync-examples:
