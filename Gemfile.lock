@@ -10,7 +10,7 @@ GEM
       eventmachine (>= 0.12.9)
       http_parser.rb (~> 0)
     eventmachine (1.2.7)
-    ffi (1.17.0-x86_64-linux-gnu)
+    ffi (1.16.3)
     forwardable-extended (2.6.0)
     http_parser.rb (0.8.0)
     i18n (1.14.6)
@@ -63,6 +63,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  ffi (< 1.17.0)
   jekyll (~> 3.8)
   kramdown-parser-gfm
   rouge
