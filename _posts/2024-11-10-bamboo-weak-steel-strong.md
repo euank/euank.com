@@ -7,10 +7,14 @@ title: Building a Bamboo Bicycle &mdash; A review of the Bamboo Bicycle Club
 
 # Building a Bamboo Bicycle &mdash; a review of the Bamboo Bicycle Club
 
-I moved to Seattle, and as many Seattleites do, I got into bikes! I have many a happy memory of the Burke Gilman, Lake Union Loop, and all the other wonderful bike paths out there.
-As I got into bikes, one of the first things that interested me was the different feel of frame materials.
+I moved to Seattle, and as many Seattleites do, I got into bikes. I have many a
+happy memory of the Burke Gilman, Lake Union Loop, and all the other wonderful
+bike paths out there. During my bike journey, one of the first things that
+interested me was the different feel of frame materials.
 
-Fortunately, since I had my bicycle stolen roughly once a year (highly recommend Seattle btw!), I got to try quite a few different materials out without needing to ever actually deal with storing a full quiver of bikes 😁!
+Fortunately, since I had my bicycle stolen roughly once a year, I got to try
+quite a few different frames out without needing to ever actually deal with
+storing a full quiver of bikes.
 
 <figure>
   <img class='blog-image' src="/imgs/bamboo-bike/davidson.jpg" alt="image of a steel davidson bike"/>
@@ -18,7 +22,7 @@ Fortunately, since I had my bicycle stolen roughly once a year (highly recommend
 </figure>
 
 At first, I tried more normal stuff, like solid steel, cool carbon fiber, an
-alright aluminium one, and eventually a terrific titanium one.
+alright aluminium one, and eventually a tough titanium one.
 
 <div class="image-container">
   <figure>
@@ -41,13 +45,13 @@ alright aluminium one, and eventually a terrific titanium one.
 
 Honestly, I think the titanium one felt the nicest to ride, and I hope whoever stole that one gets some good use out of it!
 
-But, the point is, I was frame-curious, I felt like I tried all the normal things, and then I found out online that you could make bikes out of bamboo, with apparently good ride quality!
+But, the point is, I was frame-curious, I felt like I tried all the normal things, and then I found out online that you could make bikes out of bamboo, with apparently good ride quality.
 
 You know what comes next, I googled, I found the [Bamboo Bicycle Club](https://bamboobicycleclub.org/), and after the idea bounced around in my head for a couple years, I ordered one.
 
 ### Bamboo Bicyle Club kits
 
-So, there's a bunch of people out there who will pre-build bamboo frames (some quite fancy, like [Calfee](https://calfeedesign.com/bamboo/)), but I felt like building it myself would be fun, and the most professional-but-still-cheap kits seemed to be the [Bamboo Bicycle Club](https://bamboobicycleclub.org/collections/home-build-kits) ones. It seemed like the best bet, so I went with it.
+So, there's people out there who sell you a pre-built bamboo frame (some quite fancy, like [Calfee](https://calfeedesign.com/bamboo/)), but I felt like building it myself would be fun, and the most professional-but-still-cheap kits seemed to be the [Bamboo Bicycle Club](https://bamboobicycleclub.org/collections/home-build-kits) kits. It seemed like the best bet, so I went with it.
 
 This was my first time building up a bike, so I figured I'd keep it simple and just make a fixie, so I ordered the Bamboo Bicycle Club's [Road Frame Kit](https://bamboobicycleclub.org/collections/home-build-kits/products/bamboo-bike-road-kit), borrowed a woodshop from a friend, and got started!
 
@@ -69,9 +73,10 @@ Financially, my initial estimate for the cost was:
 |======+========+=======|
 | **Total** | $1017  | |
 
-This ended up being wrong for reasons we'll get into below! I didn't know what I was doing it turned out!
 
-The initial plan was to recycle as much as I could from my Davidson bike, since the frame had been damaged but the other parts were largely fine!
+The initial plan was to recycle as much as I could from my Davidson bike, since the frame had been damaged but the other parts were largely fine.
+As a first-time bike-builder, I naively thought re-using parts between two road bikes would be easy, but as it turns out, I had much to learn.
+As such, well, there's another chart coming up with the real cost.
 
 Anyway, let's move on to actually building the thing!
 
@@ -87,10 +92,10 @@ Note that this blog post is written from memory around 3 years after the fact, s
 So, the basic process for building the bikes was this:
 
 1. Consult a 1-1 drawing (provided with the kit) that included dimensions for
-   how deep each bamboo piece should be fitted into each lug.
-2. Whittle and sand down the bamboo wood until it fits into the lug (shaping).
-3. Once everything fits together, glue all the ends into the lugs, let it dry!
-4. Apply a waterproof coating.
+   how deep each bamboo piece should be fitted into each lug
+2. Whittle and sand down the bamboo wood until it fits into the lug (shaping)
+3. Once everything fits together, glue all the ends into the lugs, let it dry
+4. Apply a waterproof coating
 4. Frame done! (well, in theory at least)
 
 <figure>
@@ -141,6 +146,7 @@ There were actually multiple things wrong here! Let me simply quote the email I 
 >     <img class="blog-image" width="300px" src="/imgs/bamboo-bike/seatpost-jig.jpg"/>
 >
 > Finally, let's talk about the rear triangle alignment.
+>
 > After glueing+drying the frame, and then putting on the horizontal dropout and rear wheel, the wheel can't be trued. There's a roughly 1/8 inch difference in the length of the seatstays (probably due to my mistakes mentioned in issue 3 above), and the wheel, no matter how I shift it within the horizontal dropouts, won't align along the same vertical axis as the seat post. Either the top or bottom will rub once I put on a tire.
 > Pictures don't show it very well, but I'll include one anway. Below, you can see that the wheel is centered between the chainstays, but curves right and nearly touches the right seatstay.
 >
@@ -193,7 +199,7 @@ to send an image (which I already had, the one above), and then got entirely
 ignored when I re-sent the image again and asked whether the difference had
 been intentional.
 
-In short, I paid for a second kit to find out the first was detective, and then got ignored entirely.
+In short, I paid for a second kit to find out the first was detective, and then got stonewalled when I asked about it.
 
 #### Kit 2 &mdash; Build
 
@@ -208,9 +214,9 @@ The key change I made this time was to use the actual wheel while the glue was d
 
 This worked wonders!
 
-From there on, the remaining bits of the frame were smooth sailing! I applied a
+From there on, the remaining bits of the frame were smooth sailing. I applied a
 custom-printed decal (saying 竹製, Japanese for "Made of Bamboo". Ignore the
-one missing stroke!), sprayed on a clearcoat for weather protection, and we had
+one missing stroke please), sprayed on a clearcoat for weather protection, and we had
 a bike frame!
 
 <div class="image-container">
@@ -226,7 +232,10 @@ a bike frame!
 
 ### Built Bike
 
-From the frame, building the bike wasn't so bad! The main important realization here was that my original plan, to recycle parts from an old steel bike, was doomed to failure. The steel bike had a quill stem, but the kit required an integrated headset. The bottom bracket was also incompatible.
+From the frame, building the bike was relatively straightforward.
+The main important realization here was that my original plan, to recycle parts
+from an old steel bike, was doomed to failure. The steel bike had a quill stem,
+but the kit required an integrated headset, bottom bracket incompatible, etc etc.
 
 After getting through those small hurdles though, I ended up with this beauty!
 
@@ -263,7 +272,7 @@ Let's look at the final cost! It was definitely more than I expected!
 
 ### So, how did it ride?
 
-My initial impressions riding it were good! It felt a little on the stiff side, which was totally fine for a dedicated road bike! Even doing skid stops and generally treating it like a normal fixie, it felt solid and fun to ride.
+My initial impressions riding it were good. It felt a little on the stiff side, which was totally fine for a dedicated road bike! Even doing skid stops and generally treating it like a normal fixie, it felt solid and fun to ride.
 
 After having given it a try, I did quickly realize that for ride-quality, I think steel feels better to me... but the novelty factor of riding a bike made of bamboo, and the knowledge that I built it myself (and the sunk cost fallacy lol) all kept me happy riding it.
 
@@ -271,9 +280,9 @@ For a time at least...
 
 ### Cracks Start Showing
 
-Unfortunately, the story doesn't end here! I rode the bike frequently during the Fall, and then as happens in Seattle, Fall turned into the cold, rainy, dreary winter, and I left the bike inert in my apartment.
+Unfortunately, the story doesn't end here. I rode the bike frequently during the Fall, and then as happens in Seattle, Fall turned into the cold, rainy, dreary winter, and I left the bike inert in my apartment.
 
-Seems like a safe place to leave a bike, right? I had one person break into that apartment (in 2 years), so I figured it'd be safe there.
+Seems like a safe place to leave a bike, right? I only had one person break into that apartment (in 2 years), so I figured it'd be safe there.
 
 Well, apparently not safe from uh... spontaneously cracking?
 
@@ -282,15 +291,17 @@ Well, apparently not safe from uh... spontaneously cracking?
   <figcaption>Those cracks on the bottom tube look pretty bad 😨</figcaption>
 </figure>
 
+One day, the above cracks simply appeared. I hadn't ridden the bike for around
+3 weeks at that point, and the cracks really did just appear without even
+touching or moving the frame. Honestly, I was a little spooked.
 
 The cracks, combined with the ride quality being "not as good as steel", led me
 to rebuild the bike as a steel-framed fixie instead, and mark this down as a
 fun learning experience.
 
 The cracks may not actually be dangerous, but I'm not 100% sure, and at the
-least I'd need to fill them in and redo the clearcoat to waterproof it again,
-and probably re-enforce, so it seemed best to me to just consider this the
-conclusion of the project!
+least I'd need to fill them in and redo the clearcoat to waterproof it again.
+It seemed best to me to just consider this the conclusion of the project!
 
 ## Bamboo Bicycle Club Review
 
@@ -313,7 +324,7 @@ When the first frame wasn't viable, I thought a little about what to do with it.
 
 I consider it a failed attempt at art because the original vision had a lot more vines reclaiming a lot more of the frame, but hey, art is art, so be it.
 
-Tragically, this art project was unceremoniously halted by moving to Japan. You will be missed, old frame 🫡.
+Tragically, this art project was unceremoniously halted by moving to Japan. You will be missed, old frame.
 
 <figure>
   <img class="blog-image" src="/imgs/bamboo-bike/bonus-vines.jpg" alt="frame with vines hanging from it" />
