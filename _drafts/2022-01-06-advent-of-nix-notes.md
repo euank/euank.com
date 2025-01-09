@@ -38,3 +38,11 @@ to nix and why.
 builtins.trace
 
 ### sublist
+
+### forcing values
+
+Look at 2024 day 11.
+
+Look at force.
+
+Without that force, it takes 64+GiB of memory, with that force it maxes out at a mere 450MiB.
