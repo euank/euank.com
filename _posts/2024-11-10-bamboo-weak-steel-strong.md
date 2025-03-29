@@ -27,12 +27,12 @@ alright aluminium one, and eventually a tough titanium one.
 <div class="image-container">
   <figure>
     <img class='blog-image' src="/imgs/bamboo-bike/carbon.jpg" alt="image of a carbon fiber marin bike"/>
-    <figcaption>Marin carbon-fiber gravel bike, Jan 2022-Jul 2022 (stolon)</figcaption>
+    <figcaption>Marin carbon-fiber gravel bike, Jan 2022-Jul 2022 (stolen)</figcaption>
   </figure>
 
   <figure>
     <img class='blog-image' src="/imgs/bamboo-bike/ti.jpg" alt="image of a titanium litespeed bike"/>
-    <figcaption>Titanium Litespeed, Nov 2019-Jul 2020 (stolon)</figcaption>
+    <figcaption>Titanium Litespeed, Nov 2019-Jul 2020 (stolen)</figcaption>
   </figure>
 </div>
 
